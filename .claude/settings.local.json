@@ -11,7 +11,13 @@
       "Bash(poetry run python:*)",
       "Bash(tmux -V:*)",
       "Bash(brew install:*)",
-      "Bash(./scripts/setup.sh:*)"
+      "Bash(./scripts/setup.sh:*)",
+      "Bash(tmux show-options:*)",
+      "Bash(tmux list-keys:*)",
+      "Bash(cat:*)",
+      "Bash(tmux kill-session:*)",
+      "Bash(poetry run ai-arcade:*)",
+      "Bash(tmux capture-pane:*)"
     ]
   }
 }

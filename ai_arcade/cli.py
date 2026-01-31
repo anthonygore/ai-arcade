@@ -7,9 +7,7 @@ import sys
 from .agents import create_agent
 from .ai_monitor import AIMonitor
 from .config import Config
-from .game_runner import GameRunnerApp
 from .tmux_manager import TmuxManager
-from .ui.launcher_menu import show_launcher
 
 
 def main():
@@ -18,20 +16,9 @@ def main():
         # Load configuration
         config = Config.load()
 
-        # Show launcher menu
+        # Launch directly with Claude Code + Games
         print("🎮 Starting AI Arcade...")
-        selection = show_launcher(config)
-
-        if selection["games_only"]:
-            # Launch game runner without AI agent
-            run_games_only(config)
-        elif selection["agent"]:
-            # Launch dual-pane with AI agent
-            run_with_agent(config, selection["agent"])
-        else:
-            # User quit from launcher
-            print("Exiting AI Arcade.")
-            sys.exit(0)
+        run_with_agent(config, "claude_code")
 
     except KeyboardInterrupt:
         print("\n👋 Exiting AI Arcade.")
@@ -39,17 +26,6 @@ def main():
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         sys.exit(1)
-
-
-def run_games_only(config):
-    """
-    Run game runner without AI agent.
-
-    Args:
-        config: Config instance
-    """
-    app = GameRunnerApp(config)
-    app.run()
 
 
 def run_with_agent(config, agent_id: str):
@@ -122,10 +98,7 @@ def run_with_agent(config, agent_id: str):
         print("\n" + "="*60)
         print("🎮 AI ARCADE is ready!")
         print("="*60)
-        print(f"Prefix key: {config.keybindings.prefix}")
-        print(f"  {config.keybindings.prefix} + {config.keybindings.switch_to_ai}: Switch to AI pane")
-        print(f"  {config.keybindings.prefix} + {config.keybindings.switch_to_game}: Switch to game pane")
-        print(f"  {config.keybindings.prefix} + {config.keybindings.quit}: Quit session")
+        print(f"  Ctrl+Space: Toggle between AI and Games windows")
         print("\nPress Ctrl+C to exit AI Arcade")
         print("="*60 + "\n")
 

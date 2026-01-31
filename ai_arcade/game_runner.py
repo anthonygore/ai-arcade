@@ -26,9 +26,6 @@ class GameRunnerApp(App):
         self.library = GameLibrary()
         self.save_manager = SaveStateManager()
 
-        self.current_game = None
-        self.game_start_time = None
-
     def compose(self) -> ComposeResult:
         """Compose UI layout."""
         yield Header()
@@ -61,71 +58,79 @@ class GameRunnerApp(App):
             game_id: Game identifier
             resume: Whether to resume from save
         """
-        # Get game instance
-        self.current_game = self.library.get_game(game_id)
+        # Exit the runner app and return the game selection
+        self.exit(result={"game_id": game_id, "resume": resume})
 
-        if not self.current_game:
-            self.notify(f"Error: Could not load game {game_id}", severity="error")
-            self.show_game_selector()
-            return
+
+def main():
+    """Entry point for game runner."""
+    while True:
+        config = Config.load()
+        library = GameLibrary()
+        save_manager = SaveStateManager()
+
+        # Show game selector
+        app = GameRunnerApp(config)
+        result = app.run()
+
+        # If user quit, exit the loop
+        if result is None:
+            break
+
+        # Otherwise, run the selected game
+        game_id = result["game_id"]
+        resume = result["resume"]
+
+        # Get game instance
+        game = library.get_game(game_id)
+
+        if not game:
+            print(f"Error: Could not load game {game_id}")
+            continue
 
         # Load save state if resuming
-        if resume and self.save_manager.has_save(game_id):
-            save_state = self.save_manager.load_game(game_id)
+        if resume and save_manager.has_save(game_id):
+            save_state = save_manager.load_game(game_id)
             if save_state:
                 try:
-                    self.current_game.load_save_state(save_state)
+                    game.load_save_state(save_state)
                 except Exception as e:
-                    self.notify(f"Warning: Could not load save: {e}", severity="warning")
-
-        # Exit the runner app
-        self.exit()
+                    print(f"Warning: Could not load save: {e}")
 
         # Track start time
-        self.game_start_time = time.time()
+        game_start_time = time.time()
 
         # Run the game (blocking)
         try:
-            self.current_game.run()
+            game.run()
 
             # Game finished, update stats
-            play_time = int(time.time() - self.game_start_time)
-            score = self.current_game.score
+            play_time = int(time.time() - game_start_time)
+            score = game.score
 
-            self.library.update_play_stats(
-                self.current_game.metadata.id,
+            library.update_play_stats(
+                game.metadata.id,
                 play_time,
                 score
             )
 
             # Save state if paused
-            if self.current_game.state == GameState.PAUSED:
-                save_state = self.current_game.get_save_state()
-                self.save_manager.save_game(
-                    self.current_game.metadata.id,
+            if game.state == GameState.PAUSED:
+                save_state = game.get_save_state()
+                save_manager.save_game(
+                    game.metadata.id,
                     save_state
                 )
-            elif self.current_game.state == GameState.GAME_OVER:
+            elif game.state == GameState.GAME_OVER:
                 # Clear save on game over
-                self.save_manager.delete_save(self.current_game.metadata.id)
+                save_manager.delete_save(game.metadata.id)
 
         except Exception as e:
             print(f"Error running game: {e}")
+            import traceback
+            traceback.print_exc()
 
-        finally:
-            # Reset state
-            self.current_game = None
-            self.game_start_time = None
-
-            # Re-run the runner to show selector again
-            main()
-
-
-def main():
-    """Entry point for game runner."""
-    config = Config.load()
-    app = GameRunnerApp(config)
-    app.run()
+        # Loop back to show selector again
 
 
 if __name__ == "__main__":

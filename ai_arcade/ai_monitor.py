@@ -56,9 +56,9 @@ class AIMonitor:
         """Main monitoring loop (runs in thread)."""
         while self._running:
             try:
-                # Capture recent output from AI pane
-                output = self.tmux.capture_pane_output(
-                    self.tmux.ai_pane_id,
+                # Capture recent output from AI window
+                output = self.tmux.capture_window_output(
+                    self.tmux.ai_window_index,
                     lines=self.buffer_lines
                 )
 
@@ -99,7 +99,7 @@ class AIMonitor:
                 time.sleep(self.check_interval)
 
     def _send_notification(self) -> None:
-        """Send notification to game pane that AI is ready."""
+        """Send notification to game window that AI is ready."""
         if not self.config.notifications.visual:
             return
 
@@ -107,8 +107,9 @@ class AIMonitor:
             message = self.config.notifications.message
             duration = int(self.config.notifications.flash_duration * 1000)  # Convert to ms
 
+            target = f"{self.tmux.session_name}:{self.tmux.game_window_index}"
             self.tmux._send_tmux_cmd([
-                "display-message", "-t", self.tmux.game_pane_id,
+                "display-message", "-t", target,
                 "-d", str(duration),
                 message
             ])

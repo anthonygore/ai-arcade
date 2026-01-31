@@ -63,10 +63,8 @@ poetry run ai-arcade
 
 2. **Select your AI agent** from the menu (or choose "Games Only")
 
-3. **Switch between panes**:
-   - `Ctrl+A` then `↑` - Switch to AI agent
-   - `Ctrl+A` then `↓` - Switch to games
-   - `Ctrl+A` then `?` - Show help
+3. **Switch between windows**:
+   - `Ctrl+Space` - Toggle between AI and Games windows
 
 4. **Play games while AI thinks!** 🎮
 
@@ -118,15 +116,12 @@ agents:
 # tmux Settings
 tmux:
   session_name: "ai-arcade"
-  pane_split_ratio: 70  # Top pane (AI) gets 70% of height
   mouse_mode: true
+  status_bar: true
 
 # Keybindings
 keybindings:
-  prefix: "C-a"          # Ctrl+A
-  switch_to_ai: "Up"
-  switch_to_game: "Down"
-  quit: "q"
+  toggle_window: "C-Space"  # Ctrl+Space to toggle between windows
 
 # Notifications
 notifications:
@@ -153,17 +148,17 @@ agents:
 
 ## 🎯 How It Works
 
-1. **Dual-Pane Setup**: AI Arcade creates a tmux session with two panes:
-   - **Top pane (70%)**: Your AI coding agent runs here
-   - **Bottom pane (30%)**: Game runner with your games
+1. **Dual-Window Setup**: AI Arcade creates a tmux session with two full-screen windows:
+   - **Window 0 (AI Agent)**: Your AI coding agent runs here with full terminal space
+   - **Window 1 (Games)**: Game runner with full terminal space
 
 2. **Smart Monitoring**: AI Arcade watches the AI agent's output for:
    - Configured regex patterns (e.g., prompt indicators)
    - Inactivity timeout (no output for N seconds = ready)
 
-3. **Notifications**: When the AI is ready for input, you get a notification in the game pane
+3. **Notifications**: When the AI is ready for input, you get a notification in the game window
 
-4. **Seamless Switching**: Use configured keybindings to switch between panes instantly
+4. **Seamless Switching**: Use configured keybindings to instantly switch between windows - both stay running with full state preserved
 
 ---
 

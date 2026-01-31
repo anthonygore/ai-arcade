@@ -67,7 +67,7 @@ class GameSelectorScreen(Screen):
 
         with Container():
             # Create game table
-            table = DataTable()
+            table = DataTable(cursor_type="row")
             table.add_columns(
                 "Game",
                 "Category",
@@ -114,6 +114,11 @@ class GameSelectorScreen(Screen):
         )
 
         yield Footer()
+
+    def on_mount(self) -> None:
+        """Focus the table when screen mounts."""
+        table = self.query_one(DataTable)
+        table.focus()
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         """

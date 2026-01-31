@@ -22,7 +22,6 @@ class TmuxConfig:
     """Configuration for tmux session."""
 
     session_name: str = "ai-arcade"
-    pane_split_ratio: int = 70  # Top pane percentage
     status_bar: bool = True
     mouse_mode: bool = True
 
@@ -68,11 +67,7 @@ class UIConfig:
 class KeybindingsConfig:
     """Configuration for keybindings."""
 
-    prefix: str = "C-a"  # Ctrl+A
-    switch_to_ai: str = "Up"
-    switch_to_game: str = "Down"
-    help: str = "?"
-    quit: str = "q"
+    toggle_window: str = "C-Space"  # Ctrl+Space to toggle between AI and Games
 
 
 class Config:
@@ -189,7 +184,6 @@ class Config:
             },
             "tmux": {
                 "session_name": "ai-arcade",
-                "pane_split_ratio": 70,
                 "status_bar": True,
                 "mouse_mode": True
             },
@@ -215,11 +209,7 @@ class Config:
                 "animation_speed": "normal"
             },
             "keybindings": {
-                "prefix": "C-a",
-                "switch_to_ai": "Up",
-                "switch_to_game": "Down",
-                "help": "?",
-                "quit": "q"
+                "toggle_window": "C-Space"
             }
         }
 
@@ -249,7 +239,6 @@ class Config:
         tmux_data = data.get("tmux", {})
         tmux = TmuxConfig(
             session_name=tmux_data.get("session_name", "ai-arcade"),
-            pane_split_ratio=tmux_data.get("pane_split_ratio", 70),
             status_bar=tmux_data.get("status_bar", True),
             mouse_mode=tmux_data.get("mouse_mode", True)
         )
@@ -287,15 +276,16 @@ class Config:
             animation_speed=ui_data.get("animation_speed", "normal")
         )
 
-        # Parse keybindings
+        # Parse keybindings (handle both old and new format)
         kb_data = data.get("keybindings", {})
-        keybindings = KeybindingsConfig(
-            prefix=kb_data.get("prefix", "C-a"),
-            switch_to_ai=kb_data.get("switch_to_ai", "Up"),
-            switch_to_game=kb_data.get("switch_to_game", "Down"),
-            help=kb_data.get("help", "?"),
-            quit=kb_data.get("quit", "q")
-        )
+        # New format has toggle_window, old format had prefix/next_window/previous_window
+        if "toggle_window" in kb_data:
+            toggle_key = kb_data.get("toggle_window", "C-Space")
+        else:
+            # Migrate from old format - just use C-Space
+            toggle_key = "C-Space"
+
+        keybindings = KeybindingsConfig(toggle_window=toggle_key)
 
         return cls(
             agents=agents,

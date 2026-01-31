@@ -3,7 +3,7 @@
 import importlib
 import inspect
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
@@ -308,7 +308,8 @@ class GameLibrary:
                 return datetime.fromisoformat(last_played.replace('Z', '+00:00'))
             except:
                 pass
-        return datetime.min
+        # Return timezone-aware datetime.min to match timezone-aware parsed dates
+        return datetime.min.replace(tzinfo=timezone.utc)
 
     def _get_play_count(self, game_id: str) -> int:
         """

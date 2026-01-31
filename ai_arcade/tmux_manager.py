@@ -21,8 +21,8 @@ class TmuxManager:
         """
         self.config = config
         self.session_name = config.tmux.session_name
-        self.ai_pane_id: Optional[str] = None
-        self.game_pane_id: Optional[str] = None
+        self.ai_window_index = 0
+        self.game_window_index = 1
 
         # Check tmux availability
         if not self._is_tmux_available():
@@ -50,11 +50,11 @@ class TmuxManager:
 
     def create_session(self, working_dir: Optional[Path] = None) -> None:
         """
-        Create new tmux session with split panes.
+        Create new tmux session with separate windows.
 
         Creates:
-        - Top pane (70% height): For AI agent
-        - Bottom pane (30% height): For game runner
+        - Window 0: AI agent (full screen)
+        - Window 1: Game runner (full screen)
 
         Args:
             working_dir: Working directory for session
@@ -62,29 +62,20 @@ class TmuxManager:
         # Kill existing session if present
         self._kill_session_if_exists()
 
-        # Build create session command
-        cmd = ["tmux", "new-session", "-d", "-s", self.session_name]
+        # Build create session command for AI window
+        cmd = ["tmux", "new-session", "-d", "-s", self.session_name, "-n", "AI Agent"]
 
         if working_dir:
             cmd.extend(["-c", str(working_dir)])
 
-        # Create new detached session
+        # Create new detached session with first window (AI)
         subprocess.run(cmd, check=True)
 
-        # Get initial pane ID (this will be AI pane)
-        self.ai_pane_id = self._get_pane_id(0)
-
-        # Split horizontally for game pane
-        # Top pane gets pane_split_ratio%, bottom gets the rest
-        split_percentage = 100 - self.config.tmux.pane_split_ratio
+        # Create second window for games
         subprocess.run([
-            "tmux", "split-window", "-v",
-            "-p", str(split_percentage),
-            "-t", f"{self.session_name}:0"
+            "tmux", "new-window", "-t", f"{self.session_name}:{self.game_window_index}",
+            "-n", "Games"
         ], check=True)
-
-        # Get game pane ID
-        self.game_pane_id = self._get_pane_id(1)
 
         # Configure session
         self._configure_session()
@@ -93,40 +84,27 @@ class TmuxManager:
         """Set tmux session options."""
         # Enable mouse mode if configured
         if self.config.tmux.mouse_mode:
-            self._send_tmux_cmd(["set-option", "-g", "mouse", "on"])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "mouse", "on"])
 
         # Configure status bar
         if self.config.tmux.status_bar:
-            self._send_tmux_cmd(["set-option", "-g", "status", "on"])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status", "on"])
             self._send_tmux_cmd([
-                "set-option", "-g", "status-left",
+                "set-option", "-t", self.session_name, "status-left",
                 "🎮 AI ARCADE | "
             ])
+            self._send_tmux_cmd([
+                "set-option", "-t", self.session_name, "status-right",
+                "#{window_index}:#{window_name} | Ctrl+Space to toggle"
+            ])
         else:
-            self._send_tmux_cmd(["set-option", "-g", "status", "off"])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status", "off"])
 
-        # Set keybindings
-        prefix = self.config.keybindings.prefix
-        self._send_tmux_cmd(["set-option", "-g", "prefix", prefix])
-
-        # Unbind default prefix
-        self._send_tmux_cmd(["unbind", "C-b"])
-
-        # Bind prefix key
-        self._send_tmux_cmd(["bind-key", prefix.replace("C-", "^"), "send-prefix"])
-
-        # Bind pane switching keys
-        switch_up = self.config.keybindings.switch_to_ai
-        switch_down = self.config.keybindings.switch_to_game
-
+        # Bind Ctrl+Space to toggle between windows (last-window command)
+        # Using -n flag to bind in root table (no prefix needed)
+        toggle_key = self.config.keybindings.toggle_window
         self._send_tmux_cmd([
-            "bind-key", switch_up,
-            "select-pane", "-t", self.ai_pane_id
-        ])
-
-        self._send_tmux_cmd([
-            "bind-key", switch_down,
-            "select-pane", "-t", self.game_pane_id
+            "bind-key", "-n", toggle_key, "last-window"
         ])
 
     def launch_ai_agent(
@@ -136,7 +114,7 @@ class TmuxManager:
         working_dir: Optional[Path] = None
     ) -> None:
         """
-        Launch AI agent in top pane.
+        Launch AI agent in AI window.
 
         Args:
             agent_command: Command to launch agent
@@ -151,56 +129,60 @@ class TmuxManager:
 
         # Change directory if specified
         if working_dir:
-            self.send_to_pane(
-                self.ai_pane_id,
+            self.send_to_window(
+                self.ai_window_index,
                 f"cd {shlex.quote(str(working_dir))}"
             )
 
         # Launch agent
-        self.send_to_pane(self.ai_pane_id, full_command)
+        self.send_to_window(self.ai_window_index, full_command)
 
     def launch_game_runner(self) -> None:
-        """Launch game runner in bottom pane."""
+        """Launch game runner in game window."""
         # Use Poetry to run the game runner module in the virtual environment
         runner_cmd = "export PATH=\"/Users/anthonygore/.local/bin:$PATH\" && poetry run python -m ai_arcade.game_runner"
-        self.send_to_pane(self.game_pane_id, runner_cmd)
+        self.send_to_window(self.game_window_index, runner_cmd)
 
-    def send_to_pane(
+    def send_to_window(
         self,
-        pane_id: str,
+        window_index: int,
         command: str,
         literal: bool = False
     ) -> None:
         """
-        Send command to specific pane.
+        Send command to specific window.
 
         Args:
-            pane_id: tmux pane identifier
+            window_index: Window index (0 for AI, 1 for games)
             command: Command string to send
             literal: If True, send keys literally without Enter
         """
+        target = f"{self.session_name}:{window_index}"
+
         if literal:
             subprocess.run([
-                "tmux", "send-keys", "-t", pane_id, "-l", command
+                "tmux", "send-keys", "-t", target, "-l", command
             ], check=True)
         else:
             subprocess.run([
-                "tmux", "send-keys", "-t", pane_id, command, "Enter"
+                "tmux", "send-keys", "-t", target, command, "Enter"
             ], check=True)
 
-    def capture_pane_output(self, pane_id: str, lines: int = 50) -> str:
+    def capture_window_output(self, window_index: int, lines: int = 50) -> str:
         """
-        Capture recent output from pane.
+        Capture recent output from window.
 
         Args:
-            pane_id: Pane to capture
+            window_index: Window to capture (0 for AI, 1 for games)
             lines: Number of lines of history to capture
 
         Returns:
-            String containing pane content
+            String containing window content
         """
+        target = f"{self.session_name}:{window_index}"
+
         result = subprocess.run([
-            "tmux", "capture-pane", "-t", pane_id,
+            "tmux", "capture-pane", "-t", target,
             "-p",  # Print to stdout
             "-S", f"-{lines}",  # Start from N lines back
             "-e"  # Include escape sequences
@@ -210,9 +192,9 @@ class TmuxManager:
 
     def attach(self) -> None:
         """Attach to tmux session (blocking)."""
-        # Focus on AI pane first
+        # Focus on AI window first
         subprocess.run([
-            "tmux", "select-pane", "-t", self.ai_pane_id
+            "tmux", "select-window", "-t", f"{self.session_name}:{self.ai_window_index}"
         ], check=True)
 
         # Attach to session
@@ -234,24 +216,6 @@ class TmuxManager:
 
         if result.returncode == 0:
             self.kill_session()
-
-    def _get_pane_id(self, pane_index: int) -> str:
-        """
-        Get pane ID by index.
-
-        Args:
-            pane_index: Index of pane (0-based)
-
-        Returns:
-            Pane ID string
-        """
-        result = subprocess.run([
-            "tmux", "list-panes", "-t", self.session_name,
-            "-F", "#{pane_id}"
-        ], capture_output=True, text=True, check=True)
-
-        pane_ids = result.stdout.strip().split('\n')
-        return pane_ids[pane_index]
 
     def _send_tmux_cmd(self, args: List[str]) -> None:
         """

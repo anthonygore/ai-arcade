@@ -1,7 +1,7 @@
 # AI Arcade - Implementation Plan
 
 ## Overview
-Build a terminal application that lets developers play games while waiting for AI coding agents (Claude Code, Aider, etc.) to process requests. Uses tmux for dual-pane interface (AI agent top, games bottom) with smart monitoring to detect when the AI is ready.
+Build a terminal application that lets developers play games while waiting for AI coding agents (Claude Code, Aider, etc.) to process requests. Uses tmux with separate full-screen windows (Window 0: AI agent, Window 1: Games) that you can switch between instantly while maintaining full state in each window.
 
 ## User Requirements
 - **Scope**: Full MVP with all core features
@@ -87,7 +87,8 @@ agents:
 
 tmux:
   session_name: "ai-arcade"
-  pane_split_ratio: 70  # Top pane percentage
+  mouse_mode: true
+  status_bar: true
 
 monitoring:
   check_interval: 0.5
@@ -155,23 +156,23 @@ games:
 
 **Key Features**:
 - Check tmux availability (fail fast if missing)
-- Create session with split panes (70/30 ratio)
-- Launch AI agent in top pane
-- Launch game runner in bottom pane
-- Capture pane output for monitoring
-- Configure keybindings from config
+- Create session with separate full-screen windows (Window 0: AI, Window 1: Games)
+- Launch AI agent in AI window
+- Launch game runner in game window
+- Capture window output for monitoring
+- Configure keybindings from config (next/previous window, direct window selection)
 - Clean session shutdown
 
 **Key Methods**:
-- `create_session(working_dir)` - Set up dual panes
-- `launch_ai_agent(command, args)` - Start AI in top
-- `launch_game_runner()` - Start games in bottom
-- `send_to_pane(pane_id, command)` - Execute in pane
-- `capture_pane_output(pane_id, lines)` - Read output
+- `create_session(working_dir)` - Set up dual windows
+- `launch_ai_agent(command, args)` - Start AI in window 0
+- `launch_game_runner()` - Start games in window 1
+- `send_to_window(window_index, command)` - Execute in window
+- `capture_window_output(window_index, lines)` - Read output
 - `attach()` - Attach to session (blocking)
 - `kill_session()` - Clean shutdown
 
-**Design Decision**: Use tmux pane IDs (not indices) for stability
+**Design Decision**: Use tmux windows instead of split panes for full-screen real estate and better visibility
 
 ### Phase 4: AI Agent Integration
 **Goal**: Extensible agent system with readiness detection
@@ -199,13 +200,13 @@ games:
 **File**: `ai_arcade/ai_monitor.py`
 
 **Key Features**:
-- Background thread monitoring AI pane
+- Background thread monitoring AI window
 - Poll every N seconds (configurable)
 - Check agent patterns + inactivity timeout
-- Notify game pane when ready state changes (via tmux display-message)
+- Notify game window when ready state changes (via tmux display-message)
 - Thread-safe shutdown
 
-**Design Decision**: Use tmux `display-message` to notify game pane
+**Design Decision**: Use tmux `display-message` to notify game window
 
 ### Phase 5: Game Runner & UI
 **Goal**: Orchestrate game selection and execution
@@ -241,7 +242,7 @@ games:
 - Save state on pause, delete on game over
 - Loop back to selector after game
 
-**Design Decision**: Runner is re-invoked in tmux pane after each game
+**Design Decision**: Runner is re-invoked in tmux game window after each game
 
 ### Phase 6: Main CLI Orchestration
 **Goal**: Tie everything together
@@ -253,9 +254,9 @@ games:
 2. Show launcher menu
 3. If games-only: Run game runner standalone
 4. If agent selected:
-   - Create tmux session
-   - Launch AI agent in top pane
-   - Launch game runner in bottom pane
+   - Create tmux session with two windows
+   - Launch AI agent in window 0 (full screen)
+   - Launch game runner in window 1 (full screen)
    - Start AI monitor
    - Attach to tmux (blocking)
    - Cleanup on exit
@@ -333,9 +334,10 @@ games:
 ## Critical Technical Decisions
 
 ### 1. Textual Inside tmux
-- **Decision**: Games run as Textual apps in tmux panes
+- **Decision**: Games run as Textual apps in tmux windows (full screen)
 - **Validation**: Textual works well in tmux with proper terminal setup
 - **Mitigation**: Check minimum terminal size before launching games
+- **Benefit**: Full-screen windows provide better visibility than split panes
 
 ### 2. AI Readiness Detection
 - **Primary**: Regex pattern matching on recent output (last N lines)
@@ -349,7 +351,7 @@ games:
 - **Responsibility**: Each game implements own serialization
 
 ### 4. Game Runner Re-entry
-- **Approach**: Runner script re-invokes itself in tmux pane after game exits
+- **Approach**: Runner script re-invokes itself in tmux game window after game exits
 - **Reason**: Keeps games isolated and simpler than parent process management
 
 ### 5. Process Cleanup
@@ -389,10 +391,10 @@ games:
 ## Success Criteria
 - Clean installation via pip
 - Launcher menu shows installed agents
-- tmux session with dual panes
-- Games run in bottom pane
-- AI agent runs unmodified in top pane
-- Pane switching works
+- tmux session with dual windows (Window 0: AI, Window 1: Games)
+- Games run in full-screen game window
+- AI agent runs unmodified in full-screen AI window
+- Window switching works (Ctrl+A + n/p or 0/1)
 - AI monitoring detects ready state
 - Game state persists across sessions
 - Clean exit with proper cleanup
