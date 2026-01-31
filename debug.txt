@@ -1,0 +1,1 @@
+tmux capture-pane -t ai-arcade:1 -p -S -200 > ~/game_error.txt && cat ~/game_error.txt

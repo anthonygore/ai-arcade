@@ -2,6 +2,7 @@
 
 import shlex
 import subprocess
+import time
 from pathlib import Path
 from typing import List, Optional
 
@@ -127,15 +128,16 @@ class TmuxManager:
         # Build full command
         full_command = f"{agent_command} {' '.join(args)}"
 
-        # Change directory if specified
+        # Add cd command if working directory specified
         if working_dir:
-            self.send_to_window(
-                self.ai_window_index,
-                f"cd {shlex.quote(str(working_dir))}"
-            )
+            full_command = f"cd {shlex.quote(str(working_dir))} && {full_command}"
 
-        # Launch agent
-        self.send_to_window(self.ai_window_index, full_command)
+        # Launch agent using respawn-pane to avoid showing the command being typed
+        subprocess.run([
+            "tmux", "respawn-pane", "-t",
+            f"{self.session_name}:{self.ai_window_index}",
+            "-k", full_command
+        ], check=True)
 
     def launch_game_runner(self) -> None:
         """Launch game runner in game window."""
