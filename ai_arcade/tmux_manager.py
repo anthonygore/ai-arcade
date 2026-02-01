@@ -110,7 +110,7 @@ class TmuxManager:
             # Key bindings bar (top line)
             self._send_tmux_cmd(["set-option", "-t", self.session_name, "@game-keys", ""])
             keybar_left = "#{?@game-keys, #{@game-keys} ,}"
-            keybar_right = " Ctrl+Space: Toggle | Ctrl+Q: Quit "
+            keybar_right = " Ctrl+Space: Switch View | Ctrl+Q: Exit "
             keybar_format = (
                 "#[bg=colour238,fg=white,bold,align=left]"
                 f"{keybar_left}"
@@ -318,7 +318,7 @@ class TmuxManager:
 
         # Game status
         if self.current_game:
-            game_status = f"Playing {self.current_game}"
+            game_status = f"🎮 Playing: {self.current_game}"
         else:
             game_status = "No game selected"
 
