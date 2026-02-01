@@ -146,7 +146,6 @@ class Game2048Screen(Screen):
 
     def on_mount(self) -> None:
         """Called when app starts."""
-        self.app.title = self.TITLE
         self._update_display()
 
     def on_key(self, event: events.Key) -> None:
@@ -334,7 +333,7 @@ class Game2048Screen(Screen):
     def _sync_game_ref(self) -> None:
         """Sync game state back to the game instance."""
         self.game_ref.score = self.score
-        self.game_ref.state = self.game_state
+        self.game_ref.update_state(self.game_state)
 
     def _render_board(self) -> str:
         """Render the game board as text."""

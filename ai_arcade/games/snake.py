@@ -9,11 +9,8 @@ from textual.containers import Container, Vertical
 from textual.screen import Screen
 from textual.widgets import Header, Static
 
-from .base_game import BaseGame, GameMetadata, GameState
+from .base_game import BaseGame, GameEvent, GameMetadata, GameState
 from ..logger import logger
-
-# Import for updating key bindings
-import subprocess
 
 
 class SnakeGame(BaseGame):
@@ -23,7 +20,6 @@ class SnakeGame(BaseGame):
         """Initialize Snake game."""
         super().__init__()
         self.screen = None  # Reference to running SnakeScreen
-        self.config = None  # Config for updating key bindings
 
     @property
     def metadata(self) -> GameMetadata:
@@ -43,10 +39,6 @@ class SnakeGame(BaseGame):
         """Key bindings used by Snake (initial display only, updated dynamically during play)."""
         return ("Arrows: Move", "Space: Pause", "Q: Quit")
 
-    def set_config(self, config) -> None:
-        """Set config for updating key bindings."""
-        self.config = config
-
     def run(self) -> None:
         """Run the Snake game."""
         app = SnakeStandaloneApp(self)
@@ -54,7 +46,7 @@ class SnakeGame(BaseGame):
 
     def create_screen(self) -> "SnakeScreen":
         """Create the game screen for use in the hub app."""
-        self.screen = SnakeScreen(self, self.config)
+        self.screen = SnakeScreen(self)
         return self.screen
 
     def get_save_state(self) -> Dict[str, Any]:
@@ -153,11 +145,10 @@ class SnakeScreen(Screen):
         ("q", "quit_game", "Quit"),
     ]
 
-    def __init__(self, game: SnakeGame, config=None):
+    def __init__(self, game: SnakeGame):
         """Initialize the screen."""
         super().__init__()
         self.game_ref = game
-        self.config = config
         self.score = game.score
         self.game_state = GameState.PLAYING
 
@@ -197,19 +188,15 @@ class SnakeScreen(Screen):
 
     def on_mount(self) -> None:
         """Called when app starts."""
-        self.app.title = self.TITLE
         logger.info("Snake game started")
         self._update_display()
-        self._update_key_bindings()
+        self._emit_key_bindings()
         # Start game loop (update every 150ms)
         self.update_timer = self.set_interval(0.15, self._game_tick)
         logger.debug(f"Game loop started with interval 0.15s")
 
-    def _update_key_bindings(self) -> None:
-        """Update tmux key bindings bar based on current game state."""
-        if not self.config:
-            return
-
+    def _emit_key_bindings(self) -> None:
+        """Send current key bindings to the runner."""
         bindings = ["Arrows: Move"]
 
         if self.game_over:
@@ -220,23 +207,7 @@ class SnakeScreen(Screen):
             bindings.append("Space: Pause")
 
         bindings.append("Q: Quit")
-
-        # Update tmux bar
-        key_text = " | ".join(bindings)
-        try:
-            subprocess.run(
-                [
-                    "tmux",
-                    "set-option",
-                    "-t",
-                    self.config.tmux.session_name,
-                    "@game-keys",
-                    key_text,
-                ],
-                check=False,
-            )
-        except FileNotFoundError:
-            pass
+        self.game_ref.emit_event(GameEvent.KEY_BINDINGS, tuple(bindings))
 
     def on_key(self, event: events.Key) -> None:
         """Handle key presses."""
@@ -269,7 +240,7 @@ class SnakeScreen(Screen):
                 self.is_paused = True
                 self.game_state = GameState.PAUSED
                 self._update_display()
-                self._update_key_bindings()
+                self._emit_key_bindings()
 
         if self._pending_resume:
             self._pending_resume = False
@@ -278,7 +249,7 @@ class SnakeScreen(Screen):
                 self.is_paused = False
                 self.game_state = GameState.PLAYING
                 self._update_display()
-                self._update_key_bindings()
+                self._emit_key_bindings()
 
         if self.game_over or self.is_paused:
             return
@@ -356,7 +327,7 @@ class SnakeScreen(Screen):
     def _sync_game_ref(self) -> None:
         """Sync game state back to the game instance."""
         self.game_ref.score = self.score
-        self.game_ref.state = self.game_state
+        self.game_ref.update_state(self.game_state)
 
     def _render_board(self) -> str:
         """Render the game board as text."""
@@ -391,7 +362,7 @@ class SnakeScreen(Screen):
         self.game_state = GameState.GAME_OVER
         self.game_over_reason = reason  # Store for debugging
         self._update_display()
-        self._update_key_bindings()
+        self._emit_key_bindings()
 
     def action_toggle_pause(self) -> None:
         """Toggle pause state."""
@@ -405,7 +376,7 @@ class SnakeScreen(Screen):
                 self.game_state = GameState.PLAYING
             self._sync_game_ref()
             self._update_display()
-            self._update_key_bindings()
+            self._emit_key_bindings()
 
     def action_restart(self) -> None:
         """Restart the game (only works when game over)."""
@@ -436,7 +407,7 @@ class SnakeScreen(Screen):
 
         self._sync_game_ref()
         self._update_display()
-        self._update_key_bindings()
+        self._emit_key_bindings()
 
     def action_quit_game(self) -> None:
         """Quit the game."""

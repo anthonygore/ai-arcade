@@ -12,7 +12,6 @@ class GameSelectorScreen(Screen):
     TITLE = "Select a game"
 
     BINDINGS = [
-        ("q", "quit_to_menu", "Quit"),
         ("enter", "select_game", "Play"),
         ("r", "resume_game", "Resume"),
     ]
@@ -105,13 +104,13 @@ class GameSelectorScreen(Screen):
 
     def on_mount(self) -> None:
         """Focus the table when screen mounts."""
-        self.app.title = self.TITLE
         table = self.query_one(DataTable)
         table.focus()
 
     def on_screen_resume(self) -> None:
         """Restore focus and title when returning to the menu."""
-        self.app.title = self.TITLE
+        if hasattr(self.app, "on_return_to_menu"):
+            self.app.on_return_to_menu()
         table = self.query_one(DataTable)
         table.focus()
 
@@ -152,10 +151,6 @@ class GameSelectorScreen(Screen):
                 else:
                     # Show notification that no save exists
                     self.notify("No saved game", severity="warning")
-
-    def action_quit_to_menu(self) -> None:
-        """Quit to menu."""
-        self.app.exit()
 
     def refresh_games(self) -> None:
         """Reload the game list and refresh the table."""

@@ -9,7 +9,7 @@ from textual.widgets import Header
 
 from .config import Config
 from .game_library import GameLibrary, SaveStateManager
-from .games.base_game import BaseGame, GameState
+from .games.base_game import BaseGame, GameEvent, GameState
 from .logger import logger
 from .ui.game_selector import GameSelectorScreen
 
@@ -90,6 +90,12 @@ class WindowFocusMonitor:
         if self._thread:
             self._thread.join(timeout=1.0)
 
+    def update_game_keys(self, bindings) -> None:
+        """Update key bindings shown when the game window is focused."""
+        self._game_keys = tuple(bindings) if bindings else ()
+        if self._was_focused:
+            _set_tmux_game_keys(self.config, self._game_keys)
+
     def _monitor_loop(self) -> None:
         """Monitor loop that runs in background thread."""
         logger.debug(f"WindowFocusMonitor started, initial state: _was_focused={self._was_focused}")
@@ -99,9 +105,8 @@ class WindowFocusMonitor:
 
                 # Detect focus changes
                 if is_focused and not self._was_focused:
-                    # Window gained focus - resume game
-                    logger.info("WindowFocusMonitor: Game window gained focus -> calling resume()")
-                    self.game.resume()
+                    # Window gained focus - do not auto-resume
+                    logger.info("WindowFocusMonitor: Game window gained focus")
                     _set_tmux_game_keys(self.config, self._game_keys)
                     self._was_focused = True
                 elif not is_focused and self._was_focused:
@@ -168,6 +173,7 @@ class GameRunnerApp(App):
         self.current_game: BaseGame | None = None
         self.current_game_start_time: float | None = None
         self.focus_monitor: WindowFocusMonitor | None = None
+        self._current_game_keys: tuple[str, ...] = ()
 
     def compose(self) -> ComposeResult:
         """Compose UI layout."""
@@ -177,7 +183,25 @@ class GameRunnerApp(App):
         """Called when app starts."""
         _set_tmux_game_keys(self.config, ())
         _set_tmux_current_game(self.config, None)
+        self.title = self.menu_screen.TITLE
         self.push_screen(self.menu_screen)
+
+    def on_return_to_menu(self) -> None:
+        """Reset tmux status when returning to the menu."""
+        _set_tmux_game_keys(self.config, ())
+        _set_tmux_current_game(self.config, None)
+        self.title = self.menu_screen.TITLE
+
+    def _handle_game_event(self, event: GameEvent, payload) -> None:
+        """Handle game events and update tmux state."""
+        if event == GameEvent.KEY_BINDINGS:
+            bindings = tuple(payload) if payload else ()
+            self._current_game_keys = bindings
+            if self.focus_monitor:
+                self.focus_monitor.update_game_keys(bindings)
+            _set_tmux_game_keys(self.config, bindings)
+        elif event == GameEvent.STATE and payload == GameState.QUIT:
+            _set_tmux_current_game(self.config, None)
 
     def launch_game(self, game_id: str, resume: bool = False) -> None:
         """
@@ -200,6 +224,7 @@ class GameRunnerApp(App):
 
         if hasattr(game, "set_config"):
             game.set_config(self.config)
+        game.set_event_callback(self._handle_game_event)
 
         if resume and self.save_manager.has_save(game_id):
             save_state = self.save_manager.load_game(game_id)
@@ -212,8 +237,10 @@ class GameRunnerApp(App):
         self.current_game = game
         self.current_game_start_time = time.time()
 
-        _set_tmux_game_keys(self.config, game.key_bindings)
+        self._current_game_keys = tuple(game.key_bindings)
+        _set_tmux_game_keys(self.config, self._current_game_keys)
         _set_tmux_current_game(self.config, game.metadata.name)
+        self.title = game.metadata.name
 
         self.focus_monitor = WindowFocusMonitor(self.config, game, game_window_index=1)
         self.focus_monitor.start()

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from textual.screen import Screen
 
@@ -16,6 +16,13 @@ class GameState(Enum):
     PAUSED = "paused"
     GAME_OVER = "game_over"
     QUIT = "quit"
+
+
+class GameEvent(Enum):
+    """Events emitted by games for the runner to handle."""
+
+    KEY_BINDINGS = "key_bindings"
+    STATE = "state"
 
 
 @dataclass
@@ -39,6 +46,7 @@ class BaseGame(ABC):
         self.state = GameState.MENU
         self.score: int = 0
         self._save_data: Dict[str, Any] = {}
+        self._event_callback: Optional[Callable[[GameEvent, Any], None]] = None
 
     @property
     @abstractmethod
@@ -110,7 +118,7 @@ class BaseGame(ABC):
         Games can override for custom pause behavior.
         """
         if self.state == GameState.PLAYING:
-            self.state = GameState.PAUSED
+            self.update_state(GameState.PAUSED)
 
     def resume(self) -> None:
         """
@@ -120,8 +128,23 @@ class BaseGame(ABC):
         Games can override for custom resume behavior.
         """
         if self.state == GameState.PAUSED:
-            self.state = GameState.PLAYING
+            self.update_state(GameState.PLAYING)
 
     def quit(self) -> None:
         """Signal game to quit."""
-        self.state = GameState.QUIT
+        self.update_state(GameState.QUIT)
+
+    def set_event_callback(self, callback: Callable[[GameEvent, Any], None]) -> None:
+        """Register a callback for game events."""
+        self._event_callback = callback
+
+    def emit_event(self, event: GameEvent, payload: Any = None) -> None:
+        """Emit a game event to the runner."""
+        if self._event_callback:
+            self._event_callback(event, payload)
+
+    def update_state(self, state: GameState) -> None:
+        """Update state and notify the runner when it changes."""
+        if self.state != state:
+            self.state = state
+            self.emit_event(GameEvent.STATE, state)
