@@ -10,11 +10,13 @@ import yaml
 class AgentConfig:
     """Configuration for an AI agent."""
 
+    id: str
     name: str
     command: str
     args: List[str] = field(default_factory=list)
     ready_patterns: List[str] = field(default_factory=list)
     working_directory: Optional[str] = None
+    log_file: Optional[str] = None
 
 
 @dataclass
@@ -154,6 +156,7 @@ class Config:
         return {
             "agents": {
                 "claude_code": {
+                    "id": "claude_code",
                     "name": "Claude Code",
                     "command": "claude",
                     "args": [],
@@ -163,7 +166,17 @@ class Config:
                     ],
                     "working_directory": None
                 },
+                "codex": {
+                    "id": "codex",
+                    "name": "Codex",
+                    "command": "codex",
+                    "args": [],
+                    "ready_patterns": [],
+                    "working_directory": None,
+                    "log_file": "~/.codex/log/codex-tui.log"
+                },
                 "aider": {
+                    "id": "aider",
                     "name": "Aider",
                     "command": "aider",
                     "args": [],
@@ -174,6 +187,7 @@ class Config:
                     "working_directory": None
                 },
                 "cursor": {
+                    "id": "cursor",
                     "name": "Cursor AI",
                     "command": "cursor-cli",
                     "args": [],
@@ -230,11 +244,23 @@ class Config:
         agents = {}
         for agent_id, agent_data in data.get("agents", {}).items():
             agents[agent_id] = AgentConfig(
+                id=agent_data.get("id", agent_id),
                 name=agent_data.get("name", ""),
                 command=agent_data.get("command", ""),
                 args=agent_data.get("args", []),
                 ready_patterns=agent_data.get("ready_patterns", []),
-                working_directory=agent_data.get("working_directory")
+                working_directory=agent_data.get("working_directory"),
+                log_file=agent_data.get("log_file")
+            )
+        if "codex" not in agents:
+            agents["codex"] = AgentConfig(
+                id="codex",
+                name="Codex",
+                command="codex",
+                args=[],
+                ready_patterns=[],
+                working_directory=None,
+                log_file="~/.codex/log/codex-tui.log",
             )
 
         # Parse tmux config
@@ -315,6 +341,27 @@ class Config:
             AgentConfig if found, None otherwise
         """
         return self.agents.get(agent_id)
+
+    def resolve_agent(self, selector: str) -> Optional[AgentConfig]:
+        """
+        Resolve an agent from a selector string.
+
+        Matches config keys, agent IDs, or agent names (case-insensitive).
+        """
+        if not selector:
+            return None
+
+        if selector in self.agents:
+            return self.agents[selector]
+
+        selector_lower = selector.lower()
+        for agent in self.agents.values():
+            if agent.id == selector or agent.id.lower() == selector_lower:
+                return agent
+            if agent.name and agent.name.lower() == selector_lower:
+                return agent
+
+        return None
 
     def list_available_agents(self) -> List[str]:
         """

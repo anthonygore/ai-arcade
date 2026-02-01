@@ -17,6 +17,7 @@ class SnakeGame(BaseGame):
     def __init__(self):
         """Initialize Snake game."""
         super().__init__()
+        self.app = None  # Reference to running SnakeApp
 
     @property
     def metadata(self) -> GameMetadata:
@@ -38,10 +39,11 @@ class SnakeGame(BaseGame):
 
     def run(self) -> None:
         """Run the Snake game."""
-        app = SnakeApp(self)
-        app.run()
-        self.score = app.score
-        self.state = app.game_state
+        self.app = SnakeApp(self)
+        self.app.run()
+        self.score = self.app.score
+        self.state = self.app.game_state
+        self.app = None  # Clear reference after game ends
 
     def get_save_state(self) -> Dict[str, Any]:
         """Get current game state for saving."""
@@ -55,6 +57,18 @@ class SnakeGame(BaseGame):
         """Load game from saved state."""
         # Snake doesn't implement save/resume for MVP
         self.score = state.get("score", 0)
+
+    def pause(self) -> None:
+        """Pause the game when switching away from game window."""
+        super().pause()
+        if self.app and not self.app.game_over:
+            self.app.external_pause()
+
+    def resume(self) -> None:
+        """Resume the game when switching back to game window."""
+        super().resume()
+        if self.app and not self.app.game_over:
+            self.app.external_resume()
 
 
 class SnakeApp(App):
@@ -174,27 +188,34 @@ class SnakeApp(App):
         head = self.snake[0]
         new_head = (head[0] + self.direction[0], head[1] + self.direction[1])
 
-        # Check wall collision
+        # Check wall collision FIRST
         if (new_head[0] < 0 or new_head[0] >= self.board_width or
             new_head[1] < 0 or new_head[1] >= self.board_height):
             self._game_over()
             return
 
-        # Check self collision
-        if new_head in self.snake:
-            self._game_over()
-            return
+        # Check if we're eating food
+        ate_food = (new_head == self.food)
 
-        # Move snake
+        # Move snake - add new head
         self.snake.insert(0, new_head)
 
-        # Check food collision
-        if new_head == self.food:
+        # Handle food and growth
+        if ate_food:
+            # Grow: keep the tail, spawn new food
             self.score += 10
             self.food = self._spawn_food()
         else:
-            # Remove tail if no food eaten
+            # Don't grow: remove the tail
             self.snake.pop()
+
+        # Check self collision AFTER moving
+        # The new head shouldn't collide with any other part of the snake body
+        # snake[0] is the new head, so check snake[1:] for collision
+        if len(self.snake) > 1:
+            if self.snake[0] in self.snake[1:]:
+                self._game_over()
+                return
 
         self._update_display()
 
@@ -272,3 +293,17 @@ class SnakeApp(App):
         """Quit the game."""
         self.game_state = GameState.QUIT
         self.exit()
+
+    def external_pause(self) -> None:
+        """Pause game from external trigger (window switch)."""
+        if not self.game_over and not self.is_paused:
+            self.is_paused = True
+            self.game_state = GameState.PAUSED
+            self._update_display()
+
+    def external_resume(self) -> None:
+        """Resume game from external trigger (window switch)."""
+        if not self.game_over and self.is_paused:
+            self.is_paused = False
+            self.game_state = GameState.PLAYING
+            self._update_display()

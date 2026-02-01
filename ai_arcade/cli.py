@@ -16,9 +16,12 @@ def main():
         # Load configuration
         config = Config.load()
 
-        # Launch directly with Claude Code + Games
+        # Pick agent from CLI arg (default to Claude Code)
+        agent_selector = sys.argv[1] if len(sys.argv) > 1 else "claude_code"
+
+        # Launch directly with agent + Games
         print("🎮 Starting AI Arcade...")
-        run_with_agent(config, "claude_code")
+        run_with_agent(config, agent_selector)
 
     except KeyboardInterrupt:
         print("\n👋 Exiting AI Arcade.")
@@ -28,22 +31,22 @@ def main():
         sys.exit(1)
 
 
-def run_with_agent(config, agent_id: str):
+def run_with_agent(config, agent_selector: str):
     """
     Run dual-pane mode with AI agent and games.
 
     Args:
         config: Config instance
-        agent_id: ID of agent to launch (e.g., "claude_code")
+        agent_selector: Agent selector (id or name, e.g., "codex")
     """
     # Get agent configuration
-    agent_config = config.get_agent(agent_id)
+    agent_config = config.resolve_agent(agent_selector)
     if not agent_config:
-        print(f"❌ Error: Unknown agent '{agent_id}'")
+        print(f"❌ Error: Unknown agent '{agent_selector}'")
         sys.exit(1)
 
     # Create agent instance
-    agent = create_agent(agent_id, agent_config)
+    agent = create_agent(agent_config.id, agent_config)
 
     # Get working directory
     working_dir = agent.get_working_directory()

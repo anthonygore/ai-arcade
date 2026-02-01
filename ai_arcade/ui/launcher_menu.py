@@ -90,7 +90,7 @@ class LauncherMenuApp(App):
                 else:
                     yield Static(
                         "\n⚠️  No AI agents detected!\n"
-                        "Install Claude Code, Aider, or configure manually.\n",
+                        "Install Codex, Claude Code, Aider, or configure manually.\n",
                         id="no-agents-warning"
                     )
 

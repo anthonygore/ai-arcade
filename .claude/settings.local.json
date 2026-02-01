@@ -22,7 +22,11 @@
       "Bash(git commit:*)",
       "Bash(ls:*)",
       "Bash(echo:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "WebSearch",
+      "WebFetch(domain:www.analyticsvidhya.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:codefinity.com)"
     ]
   },
   "hooks": {

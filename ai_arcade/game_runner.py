@@ -1,6 +1,7 @@
 """Game runner for AI Arcade."""
 
 import subprocess
+import threading
 import time
 
 from textual.app import App, ComposeResult
@@ -8,7 +9,7 @@ from textual.widgets import Header
 
 from .config import Config
 from .game_library import GameLibrary, SaveStateManager
-from .games.base_game import GameState
+from .games.base_game import BaseGame, GameState
 from .ui.game_selector import GameSelectorScreen
 
 
@@ -30,6 +31,86 @@ def _set_tmux_game_keys(config: Config, bindings) -> None:
     except FileNotFoundError:
         # tmux not available; skip updating key bar
         pass
+
+
+class WindowFocusMonitor:
+    """Monitors tmux window focus and pauses/resumes game accordingly."""
+
+    def __init__(self, config: Config, game: BaseGame, game_window_index: int = 1):
+        """
+        Initialize window focus monitor.
+
+        Args:
+            config: Config instance
+            game: Game instance to control
+            game_window_index: Index of the game window (default 1)
+        """
+        self.config = config
+        self.game = game
+        self.game_window_index = game_window_index
+        self.session_name = config.tmux.session_name
+
+        self._running = False
+        self._thread = None
+        self._was_focused = True  # Start as focused
+
+    def start(self) -> None:
+        """Start monitoring window focus."""
+        if self._running:
+            return
+
+        self._running = True
+        self._thread = threading.Thread(target=self._monitor_loop, daemon=True)
+        self._thread.start()
+
+    def stop(self) -> None:
+        """Stop monitoring."""
+        self._running = False
+        if self._thread:
+            self._thread.join(timeout=1.0)
+
+    def _monitor_loop(self) -> None:
+        """Monitor loop that runs in background thread."""
+        while self._running:
+            try:
+                is_focused = self._is_game_window_focused()
+
+                # Detect focus changes
+                if is_focused and not self._was_focused:
+                    # Window gained focus - resume game
+                    self.game.resume()
+                    self._was_focused = True
+                elif not is_focused and self._was_focused:
+                    # Window lost focus - pause game
+                    self.game.pause()
+                    self._was_focused = False
+
+                # Check every 0.5 seconds
+                time.sleep(0.5)
+
+            except Exception:
+                # Ignore errors and keep monitoring
+                time.sleep(0.5)
+
+    def _is_game_window_focused(self) -> bool:
+        """
+        Check if the game window is currently focused.
+
+        Returns:
+            True if game window is focused
+        """
+        try:
+            result = subprocess.run([
+                "tmux", "display-message", "-t", self.session_name,
+                "-p", "#{window_index}"
+            ], capture_output=True, text=True, check=True)
+
+            active_window = int(result.stdout.strip())
+            return active_window == self.game_window_index
+
+        except (subprocess.CalledProcessError, ValueError):
+            # If we can't determine, assume focused to avoid unwanted pauses
+            return True
 
 
 class GameRunnerApp(App):
@@ -124,6 +205,10 @@ def main():
         # Track start time
         game_start_time = time.time()
 
+        # Start window focus monitor for auto-pause/resume
+        focus_monitor = WindowFocusMonitor(config, game, game_window_index=1)
+        focus_monitor.start()
+
         # Run the game (blocking)
         try:
             game.run()
@@ -154,6 +239,8 @@ def main():
             import traceback
             traceback.print_exc()
         finally:
+            # Stop focus monitor
+            focus_monitor.stop()
             _set_tmux_game_keys(config, ())
 
         # Loop back to show selector again

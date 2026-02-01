@@ -226,6 +226,22 @@ class TmuxManager:
 
         return result.stdout
 
+    def get_active_window_index(self) -> int:
+        """
+        Get the currently active window index.
+
+        Returns:
+            Window index (0 for AI, 1 for games)
+        """
+        try:
+            result = subprocess.run([
+                "tmux", "display-message", "-t", self.session_name,
+                "-p", "#{window_index}"
+            ], capture_output=True, text=True, check=True)
+            return int(result.stdout.strip())
+        except (subprocess.CalledProcessError, ValueError):
+            return -1
+
     def attach(self) -> None:
         """Attach to tmux session (blocking)."""
         # Focus on AI window first
