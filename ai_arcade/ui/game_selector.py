@@ -13,7 +13,6 @@ class GameSelectorScreen(Screen):
 
     BINDINGS = [
         ("enter", "select_game", "Play"),
-        ("r", "resume_game", "Resume"),
     ]
 
     CSS = """
@@ -57,20 +56,17 @@ class GameSelectorScreen(Screen):
 
     """
 
-    def __init__(self, library, save_manager):
+    def __init__(self, library):
         """
         Initialize game selector.
 
         Args:
             library: GameLibrary instance
-            save_manager: SaveStateManager instance
         """
         super().__init__()
         self.library = library
-        self.save_manager = save_manager
         self.games = library.list_games(sort_by="last_played")
         self.selected_game_id: str = None
-        self.resume: bool = False
 
     def compose(self) -> ComposeResult:
         """Compose UI layout."""
@@ -123,8 +119,7 @@ class GameSelectorScreen(Screen):
         """
         if event.row_key:
             self.selected_game_id = event.row_key.value
-            self.resume = False
-            self.app.launch_game(self.selected_game_id, self.resume)
+            self.app.launch_game(self.selected_game_id)
 
     def action_select_game(self) -> None:
         """Play selected game (new game)."""
@@ -133,24 +128,7 @@ class GameSelectorScreen(Screen):
             cursor_key = table.coordinate_to_cell_key(table.cursor_coordinate)
             if cursor_key.row_key:
                 self.selected_game_id = cursor_key.row_key.value
-                self.resume = False
-                self.app.launch_game(self.selected_game_id, self.resume)
-
-    def action_resume_game(self) -> None:
-        """Resume selected game if save exists."""
-        table = self.query_one(DataTable)
-        if table.cursor_row is not None:
-            cursor_key = table.coordinate_to_cell_key(table.cursor_coordinate)
-            if cursor_key.row_key:
-                game_id = cursor_key.row_key.value
-
-                if self.save_manager.has_save(game_id):
-                    self.selected_game_id = game_id
-                    self.resume = True
-                    self.app.launch_game(self.selected_game_id, self.resume)
-                else:
-                    # Show notification that no save exists
-                    self.notify("No saved game", severity="warning")
+                self.app.launch_game(self.selected_game_id)
 
     def refresh_games(self) -> None:
         """Reload the game list and refresh the table."""

@@ -1,7 +1,7 @@
 """Classic Snake game implementation."""
 
 import random
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 from textual import events
 from textual.app import App, ComposeResult
@@ -9,30 +9,25 @@ from textual.containers import Container, Vertical
 from textual.screen import Screen
 from textual.widgets import Header, Static
 
-from .base_game import BaseGame, GameEvent, GameMetadata, GameState
+from .base_game import BaseGame, GameEvent, GameState
 from ..logger import logger
 
 
 class SnakeGame(BaseGame):
     """Classic Snake game."""
 
+    ID = "snake"
+    NAME = "Snake"
+    DESCRIPTION = "Classic snake game. Eat food, grow longer, avoid walls and yourself!"
+    CATEGORY = "arcade"
+    AUTHOR = "AI Arcade Team"
+    CONTROLS_HELP = ""
+    MIN_TERMINAL_SIZE = (40, 20)
+
     def __init__(self):
         """Initialize Snake game."""
         super().__init__()
         self.screen = None  # Reference to running SnakeScreen
-
-    @property
-    def metadata(self) -> GameMetadata:
-        """Return game metadata."""
-        return GameMetadata(
-            id="snake",
-            name="Snake",
-            description="Classic snake game. Eat food, grow longer, avoid walls and yourself!",
-            category="arcade",
-            author="AI Arcade Team",
-            controls_help="",
-            min_terminal_size=(40, 20)
-        )
 
     @property
     def key_bindings(self) -> Tuple[str, ...]:
@@ -48,19 +43,6 @@ class SnakeGame(BaseGame):
         """Create the game screen for use in the hub app."""
         self.screen = SnakeScreen(self)
         return self.screen
-
-    def get_save_state(self) -> Dict[str, Any]:
-        """Get current game state for saving."""
-        # Snake doesn't implement save/resume for MVP
-        # Would need to save snake position, direction, food, score
-        return {
-            "score": self.score
-        }
-
-    def load_save_state(self, state: Dict[str, Any]) -> None:
-        """Load game from saved state."""
-        # Snake doesn't implement save/resume for MVP
-        self.score = state.get("score", 0)
 
     def pause(self) -> None:
         """Pause the game when switching away from game window."""

@@ -42,9 +42,6 @@ file_handler.setFormatter(formatter)
 # Add handler to logger
 logger.addHandler(file_handler)
 
-# Don't propagate to root logger
-logger.propagate = False
-
 
 def get_log_file_path() -> Path:
     """
@@ -75,6 +72,9 @@ def tail_log(lines: int = 50) -> str:
             return ''.join(all_lines[-lines:])
     except Exception as e:
         return f"Error reading log: {e}"
+
+# Don't propagate to root logger
+logger.propagate = False
 
 
 # Log startup

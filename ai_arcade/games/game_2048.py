@@ -1,7 +1,7 @@
 """2048 puzzle game implementation."""
 
 import random
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 from textual import events
 from textual.app import App, ComposeResult
@@ -9,29 +9,24 @@ from textual.containers import Container
 from textual.screen import Screen
 from textual.widgets import Header, Static
 
-from .base_game import BaseGame, GameMetadata, GameState
+from .base_game import BaseGame, GameState
 
 
 class Game2048(BaseGame):
     """2048 puzzle game."""
 
+    ID = "2048"
+    NAME = "2048"
+    DESCRIPTION = "Combine tiles to reach 2048! Addictive number puzzle game."
+    CATEGORY = "puzzle"
+    AUTHOR = "AI Arcade Team"
+    CONTROLS_HELP = ""
+    MIN_TERMINAL_SIZE = (40, 20)
+
     def __init__(self):
         """Initialize 2048 game."""
         super().__init__()
         self.screen = None
-
-    @property
-    def metadata(self) -> GameMetadata:
-        """Return game metadata."""
-        return GameMetadata(
-            id="2048",
-            name="2048",
-            description="Combine tiles to reach 2048! Addictive number puzzle game.",
-            category="puzzle",
-            author="AI Arcade Team",
-            controls_help="",
-            min_terminal_size=(40, 20)
-        )
 
     @property
     def key_bindings(self) -> Tuple[str, ...]:
@@ -47,18 +42,6 @@ class Game2048(BaseGame):
         """Create the game screen for use in the hub app."""
         self.screen = Game2048Screen(self)
         return self.screen
-
-    def get_save_state(self) -> Dict[str, Any]:
-        """Get current game state for saving."""
-        # For MVP, just save score
-        # Full implementation would save the entire grid
-        return {
-            "score": self.score
-        }
-
-    def load_save_state(self, state: Dict[str, Any]) -> None:
-        """Load game from saved state."""
-        self.score = state.get("score", 0)
 
 
 class Game2048Screen(Screen):

@@ -10,86 +10,6 @@ from typing import Any, Dict, List, Optional, Type
 from .games.base_game import BaseGame, GameMetadata
 
 
-class SaveStateManager:
-    """Manages game save states."""
-
-    def __init__(self, save_dir: Optional[Path] = None):
-        """
-        Initialize save state manager.
-
-        Args:
-            save_dir: Directory for save states. Defaults to ~/.ai-arcade/save_states
-        """
-        if save_dir is None:
-            save_dir = Path.home() / ".ai-arcade" / "save_states"
-
-        self.save_dir = Path(save_dir).expanduser()
-        self.save_dir.mkdir(parents=True, exist_ok=True)
-
-    def save_game(self, game_id: str, state: Dict[str, Any]) -> None:
-        """
-        Save game state to disk.
-
-        Args:
-            game_id: Unique game identifier
-            state: Game state dictionary (must be JSON-serializable)
-        """
-        save_path = self.save_dir / f"{game_id}.json"
-        try:
-            with open(save_path, 'w') as f:
-                json.dump(state, f, indent=2)
-        except Exception as e:
-            print(f"Warning: Could not save game state: {e}")
-
-    def load_game(self, game_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Load game state from disk.
-
-        Args:
-            game_id: Unique game identifier
-
-        Returns:
-            Game state dictionary if found, None otherwise
-        """
-        save_path = self.save_dir / f"{game_id}.json"
-        if not save_path.exists():
-            return None
-
-        try:
-            with open(save_path) as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"Warning: Could not load game state: {e}")
-            return None
-
-    def has_save(self, game_id: str) -> bool:
-        """
-        Check if save state exists for game.
-
-        Args:
-            game_id: Unique game identifier
-
-        Returns:
-            True if save exists
-        """
-        save_path = self.save_dir / f"{game_id}.json"
-        return save_path.exists()
-
-    def delete_save(self, game_id: str) -> None:
-        """
-        Delete save state.
-
-        Args:
-            game_id: Unique game identifier
-        """
-        save_path = self.save_dir / f"{game_id}.json"
-        if save_path.exists():
-            try:
-                save_path.unlink()
-            except Exception as e:
-                print(f"Warning: Could not delete save state: {e}")
-
-
 class GameLibrary:
     """Manages game discovery and metadata."""
 
@@ -106,7 +26,6 @@ class GameLibrary:
         self.metadata_path = Path(metadata_path).expanduser()
         self.metadata: Dict[str, Any] = self._load_metadata()
         self.available_games: Dict[str, Type[BaseGame]] = self._discover_games()
-        self.save_manager = SaveStateManager()
 
     def _load_metadata(self) -> Dict[str, Any]:
         """
@@ -116,19 +35,17 @@ class GameLibrary:
             Metadata dictionary
         """
         if not self.metadata_path.exists():
-            return {"games": {}, "last_updated": None}
+            return {"games": {}}
 
         try:
             with open(self.metadata_path) as f:
                 return json.load(f)
         except Exception as e:
             print(f"Warning: Could not load metadata: {e}")
-            return {"games": {}, "last_updated": None}
+            return {"games": {}}
 
     def _save_metadata(self) -> None:
         """Persist metadata to disk."""
-        self.metadata["last_updated"] = datetime.utcnow().isoformat() + "Z"
-
         # Ensure directory exists
         self.metadata_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -196,16 +113,10 @@ class GameLibrary:
             metadata: Game metadata
         """
         self.metadata["games"][game_id] = {
-            "id": game_id,
-            "name": metadata.name,
-            "description": metadata.description,
-            "category": metadata.category,
-            "author": metadata.author,
             "last_played": None,
             "play_count": 0,
             "total_play_time_seconds": 0,
             "high_score": 0,
-            "has_save_state": False
         }
         self._save_metadata()
 
@@ -275,7 +186,15 @@ class GameLibrary:
         """
         if game_id not in self.metadata["games"]:
             # Game metadata doesn't exist, skip
-            return
+            self._initialize_game_metadata(game_id, GameMetadata(
+                id=game_id,
+                name="",
+                description="",
+                category="",
+                author="",
+                controls_help="",
+                min_terminal_size=(0, 0),
+            ))
 
         meta = self.metadata["games"][game_id]
         meta["last_played"] = datetime.utcnow().isoformat() + "Z"
@@ -285,9 +204,6 @@ class GameLibrary:
         # Update high score if applicable
         if score is not None and score > meta.get("high_score", 0):
             meta["high_score"] = score
-
-        # Update save state flag
-        meta["has_save_state"] = self.save_manager.has_save(game_id)
 
         self._save_metadata()
 

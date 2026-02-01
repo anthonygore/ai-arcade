@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 from textual.screen import Screen
 
@@ -41,15 +41,21 @@ class GameMetadata:
 class BaseGame(ABC):
     """Abstract base class for all games."""
 
+    ID: str | None = None
+    NAME: str | None = None
+    DESCRIPTION: str | None = None
+    CATEGORY: str | None = None
+    AUTHOR: str | None = None
+    CONTROLS_HELP: str | None = None
+    MIN_TERMINAL_SIZE: Tuple[int, int] | None = None
+
     def __init__(self):
         """Initialize the game."""
         self.state = GameState.MENU
         self.score: int = 0
-        self._save_data: Dict[str, Any] = {}
         self._event_callback: Optional[Callable[[GameEvent, Any], None]] = None
 
     @property
-    @abstractmethod
     def metadata(self) -> GameMetadata:
         """
         Return game metadata.
@@ -57,7 +63,27 @@ class BaseGame(ABC):
         Returns:
             GameMetadata instance describing this game
         """
-        pass
+        required = {
+            "ID": self.ID,
+            "NAME": self.NAME,
+            "DESCRIPTION": self.DESCRIPTION,
+            "CATEGORY": self.CATEGORY,
+            "AUTHOR": self.AUTHOR,
+            "CONTROLS_HELP": self.CONTROLS_HELP,
+            "MIN_TERMINAL_SIZE": self.MIN_TERMINAL_SIZE,
+        }
+        missing = [key for key, value in required.items() if value is None]
+        if missing:
+            raise ValueError(f"Missing metadata fields: {', '.join(missing)}")
+        return GameMetadata(
+            id=self.ID,
+            name=self.NAME,
+            description=self.DESCRIPTION,
+            category=self.CATEGORY,
+            author=self.AUTHOR,
+            controls_help=self.CONTROLS_HELP,
+            min_terminal_size=self.MIN_TERMINAL_SIZE,
+        )
 
     @abstractmethod
     def run(self) -> None:
@@ -80,27 +106,6 @@ class BaseGame(ABC):
         pass
 
     @abstractmethod
-    def get_save_state(self) -> Dict[str, Any]:
-        """
-        Get current game state for persistence.
-
-        Returns:
-            Dictionary containing all state needed to resume the game.
-            Must be JSON-serializable.
-        """
-        pass
-
-    @abstractmethod
-    def load_save_state(self, state: Dict[str, Any]) -> None:
-        """
-        Restore game from saved state.
-
-        Args:
-            state: Dictionary containing saved game state
-        """
-        pass
-
-    @property
     def key_bindings(self) -> Tuple[str, ...]:
         """
         Key bindings used by the game for display in the tmux key bar.

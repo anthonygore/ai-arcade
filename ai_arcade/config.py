@@ -3,7 +3,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import yaml
 
 
 @dataclass
@@ -42,7 +41,6 @@ class GamesConfig:
     """Configuration for games."""
 
     metadata_file: str = "~/.ai-arcade/games_metadata.json"
-    save_state_dir: str = "~/.ai-arcade/save_states"
 
 
 @dataclass
@@ -97,106 +95,20 @@ class Config:
     @classmethod
     def load(cls, config_path: Optional[Path] = None) -> "Config":
         """
-        Load configuration from YAML file.
+        Load configuration from built-in defaults.
 
         Args:
-            config_path: Path to config file. Defaults to ~/.ai-arcade/config.yaml
+            config_path: Unused (kept for compatibility).
 
         Returns:
             Config instance
         """
-        if config_path is None:
-            config_path = Path.home() / ".ai-arcade" / "config.yaml"
-
-        # Create default config if not exists
-        if not config_path.exists():
-            return cls.create_default(config_path)
-
-        # Load existing config
-        try:
-            with open(config_path) as f:
-                data = yaml.safe_load(f)
-
-            return cls.from_dict(data)
-        except Exception as e:
-            print(f"Warning: Error loading config from {config_path}: {e}")
-            print("Using default configuration.")
-            return cls.create_default(config_path)
-
-    @classmethod
-    def create_default(cls, config_path: Path) -> "Config":
-        """
-        Create default configuration file.
-
-        Args:
-            config_path: Path where config should be created
-
-        Returns:
-            Config instance with defaults
-        """
-        # Ensure directory exists
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Get default config
-        default_data = cls.get_default_config()
-
-        # Write to file
-        try:
-            with open(config_path, 'w') as f:
-                yaml.dump(default_data, f, default_flow_style=False, sort_keys=False)
-            print(f"Created default config at {config_path}")
-        except Exception as e:
-            print(f"Warning: Could not write config to {config_path}: {e}")
-
-        return cls.from_dict(default_data)
+        return cls.from_dict(cls.get_default_config())
 
     @staticmethod
     def get_default_config() -> Dict[str, Any]:
         """Return default configuration as dictionary."""
         return {
-            "agents": {
-                "claude_code": {
-                    "id": "claude_code",
-                    "name": "Claude Code",
-                    "command": "claude",
-                    "args": [],
-                    "ready_patterns": [
-                        "What would you like to do\\?",
-                        "^> "
-                    ],
-                    "working_directory": None
-                },
-                "codex": {
-                    "id": "codex",
-                    "name": "Codex",
-                    "command": "codex",
-                    "args": [],
-                    "ready_patterns": [],
-                    "working_directory": None,
-                    "log_file": "~/.codex/log/codex-tui.log"
-                },
-                "aider": {
-                    "id": "aider",
-                    "name": "Aider",
-                    "command": "aider",
-                    "args": [],
-                    "ready_patterns": [
-                        "^> ",
-                        "Add .+ to the chat\\?"
-                    ],
-                    "working_directory": None
-                },
-                "cursor": {
-                    "id": "cursor",
-                    "name": "Cursor AI",
-                    "command": "cursor-cli",
-                    "args": [],
-                    "ready_patterns": [
-                        "^> "
-                    ],
-                    "working_directory": None
-                }
-            },
             "tmux": {
                 "session_name": "ai-arcade",
                 "status_bar": True,
@@ -209,7 +121,6 @@ class Config:
             },
             "games": {
                 "metadata_file": "~/.ai-arcade/games_metadata.json",
-                "save_state_dir": "~/.ai-arcade/save_states"
             },
             "notifications": {
                 "enabled": True,
@@ -229,6 +140,54 @@ class Config:
             }
         }
 
+    @staticmethod
+    def _default_agents() -> Dict[str, AgentConfig]:
+        """Return built-in agent configs."""
+        return {
+            "claude_code": AgentConfig(
+                id="claude_code",
+                name="Claude Code",
+                command="claude",
+                args=[],
+                ready_patterns=[
+                    "What would you like to do\\?",
+                    "^> ",
+                ],
+                working_directory=None,
+                log_file=None,
+            ),
+            "codex": AgentConfig(
+                id="codex",
+                name="Codex",
+                command="codex",
+                args=[],
+                ready_patterns=[],
+                working_directory=None,
+                log_file="~/.codex/log/codex-tui.log",
+            ),
+            "aider": AgentConfig(
+                id="aider",
+                name="Aider",
+                command="aider",
+                args=[],
+                ready_patterns=[
+                    "^> ",
+                    "Add .+ to the chat\\?",
+                ],
+                working_directory=None,
+                log_file=None,
+            ),
+            "cursor": AgentConfig(
+                id="cursor",
+                name="Cursor AI",
+                command="cursor-cli",
+                args=[],
+                ready_patterns=["^> "],
+                working_directory=None,
+                log_file=None,
+            ),
+        }
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Config":
         """
@@ -240,28 +199,7 @@ class Config:
         Returns:
             Config instance
         """
-        # Parse agents
-        agents = {}
-        for agent_id, agent_data in data.get("agents", {}).items():
-            agents[agent_id] = AgentConfig(
-                id=agent_data.get("id", agent_id),
-                name=agent_data.get("name", ""),
-                command=agent_data.get("command", ""),
-                args=agent_data.get("args", []),
-                ready_patterns=agent_data.get("ready_patterns", []),
-                working_directory=agent_data.get("working_directory"),
-                log_file=agent_data.get("log_file")
-            )
-        if "codex" not in agents:
-            agents["codex"] = AgentConfig(
-                id="codex",
-                name="Codex",
-                command="codex",
-                args=[],
-                ready_patterns=[],
-                working_directory=None,
-                log_file="~/.codex/log/codex-tui.log",
-            )
+        agents = cls._default_agents()
 
         # Parse tmux config
         tmux_data = data.get("tmux", {})
@@ -282,8 +220,7 @@ class Config:
         # Parse games config
         games_data = data.get("games", {})
         games = GamesConfig(
-            metadata_file=games_data.get("metadata_file", "~/.ai-arcade/games_metadata.json"),
-            save_state_dir=games_data.get("save_state_dir", "~/.ai-arcade/save_states")
+            metadata_file=games_data.get("metadata_file", "~/.ai-arcade/games_metadata.json")
         )
 
         # Parse notifications config

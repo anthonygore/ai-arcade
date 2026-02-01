@@ -8,7 +8,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import Header
 
 from .config import Config
-from .game_library import GameLibrary, SaveStateManager
+from .game_library import GameLibrary
 from .games.base_game import BaseGame, GameEvent, GameState
 from .logger import logger
 from .ui.game_selector import GameSelectorScreen
@@ -168,8 +168,7 @@ class GameRunnerApp(App):
         super().__init__()
         self.config = config
         self.library = GameLibrary()
-        self.save_manager = SaveStateManager()
-        self.menu_screen = GameSelectorScreen(self.library, self.save_manager)
+        self.menu_screen = GameSelectorScreen(self.library)
         self.current_game: BaseGame | None = None
         self.current_game_start_time: float | None = None
         self.focus_monitor: WindowFocusMonitor | None = None
@@ -203,13 +202,12 @@ class GameRunnerApp(App):
         elif event == GameEvent.STATE and payload == GameState.QUIT:
             _set_tmux_current_game(self.config, None)
 
-    def launch_game(self, game_id: str, resume: bool = False) -> None:
+    def launch_game(self, game_id: str) -> None:
         """
         Launch a game.
 
         Args:
             game_id: Game identifier
-            resume: Whether to resume from save
         """
         if self.current_game is not None:
             if self.current_game.state == GameState.QUIT:
@@ -225,14 +223,6 @@ class GameRunnerApp(App):
         if hasattr(game, "set_config"):
             game.set_config(self.config)
         game.set_event_callback(self._handle_game_event)
-
-        if resume and self.save_manager.has_save(game_id):
-            save_state = self.save_manager.load_game(game_id)
-            if save_state:
-                try:
-                    game.load_save_state(save_state)
-                except Exception as e:
-                    self.notify(f"Warning: Could not load save: {e}", severity="warning")
 
         self.current_game = game
         self.current_game_start_time = time.time()
@@ -271,12 +261,6 @@ class GameRunnerApp(App):
             play_time,
             game.score,
         )
-
-        if game.state == GameState.PAUSED:
-            save_state = game.get_save_state()
-            self.save_manager.save_game(game.metadata.id, save_state)
-        elif game.state == GameState.GAME_OVER:
-            self.save_manager.delete_save(game.metadata.id)
 
         self.menu_screen.refresh_games()
         self.current_game = None
