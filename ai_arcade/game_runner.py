@@ -201,6 +201,7 @@ class GameRunnerApp(App):
             _set_tmux_game_keys(self.config, bindings)
         elif event == GameEvent.STATE and payload == GameState.QUIT:
             _set_tmux_current_game(self.config, None)
+            self._cleanup_after_game()
 
     def launch_game(self, game_id: str) -> None:
         """
@@ -219,6 +220,9 @@ class GameRunnerApp(App):
         if not game:
             self.notify(f"Error: Could not load game {game_id}", severity="error")
             return
+
+        stats = self.library.get_game_stats(game_id) or {}
+        game.high_score = stats.get("high_score", 0)
 
         if hasattr(game, "set_config"):
             game.set_config(self.config)

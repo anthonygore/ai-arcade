@@ -53,6 +53,7 @@ class BaseGame(ABC):
         """Initialize the game."""
         self.state = GameState.MENU
         self.score: int = 0
+        self.high_score: int = 0
         self._event_callback: Optional[Callable[[GameEvent, Any], None]] = None
 
     @property

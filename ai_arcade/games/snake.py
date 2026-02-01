@@ -289,7 +289,9 @@ class SnakeScreen(Screen):
         """Update the game display."""
         # Update score
         score_widget = self.query_one("#score-display", Static)
-        score_widget.update(f"SNAKE | Score: {self.score}")
+        display_high = max(self.game_ref.high_score, self.score)
+        self.game_ref.high_score = display_high
+        score_widget.update(f"SNAKE | Score: {self.score} | High: {display_high}")
 
         # Update game board
         board_widget = self.query_one("#game-board", Static)
