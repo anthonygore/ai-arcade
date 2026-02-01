@@ -18,7 +18,7 @@ class SnakeGame(BaseGame):
 
     ID = "snake"
     NAME = "Snake"
-    DESCRIPTION = "Classic snake game. Eat food, grow longer, avoid walls and yourself!"
+    DESCRIPTION = "Eat, grow, survive! Don't bite yourself or hit walls."
     CATEGORY = "arcade"
     AUTHOR = "Agent Arcade Team"
     CONTROLS_HELP = ""
@@ -221,6 +221,7 @@ class SnakeScreen(Screen):
                 logger.info("Game paused (external trigger)")
                 self.is_paused = True
                 self.game_state = GameState.PAUSED
+                self._sync_game_ref()
                 self._update_display()
                 self._emit_key_bindings()
 
@@ -230,6 +231,7 @@ class SnakeScreen(Screen):
                 logger.info("Game resumed (external trigger)")
                 self.is_paused = False
                 self.game_state = GameState.PLAYING
+                self._sync_game_ref()
                 self._update_display()
                 self._emit_key_bindings()
 

@@ -15,7 +15,7 @@ class Game2048(BaseGame):
 
     ID = "game_2048"
     NAME = "2048"
-    DESCRIPTION = "Classic merge puzzle placeholder. Press Q to quit."
+    DESCRIPTION = "Slide & merge tiles to reach 2048. Simple yet addictive!"
     CATEGORY = "puzzle"
     AUTHOR = "Agent Arcade Team"
     CONTROLS_HELP = "Q: Quit"

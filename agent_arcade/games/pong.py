@@ -15,7 +15,7 @@ class PongGame(BaseGame):
 
     ID = "pong"
     NAME = "Pong"
-    DESCRIPTION = "Classic paddle game placeholder. Press Q to quit."
+    DESCRIPTION = "Arcade classic! Bounce the ball, beat your opponent."
     CATEGORY = "arcade"
     AUTHOR = "Agent Arcade Team"
     CONTROLS_HELP = "Q: Quit"

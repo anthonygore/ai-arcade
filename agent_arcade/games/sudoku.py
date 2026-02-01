@@ -15,7 +15,7 @@ class SudokuGame(BaseGame):
 
     ID = "sudoku"
     NAME = "Sudoku"
-    DESCRIPTION = "Number logic puzzle placeholder. Press Q to quit."
+    DESCRIPTION = "Fill the grid with logic. Every row, column must be 1-9."
     CATEGORY = "puzzle"
     AUTHOR = "Agent Arcade Team"
     CONTROLS_HELP = "Q: Quit"

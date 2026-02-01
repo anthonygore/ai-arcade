@@ -70,6 +70,25 @@ class GameSelectorScreen(Screen):
         self.games = library.list_games(sort_by="name")
         self.selected_game_id: str = None
 
+    def _populate_table(self, table: DataTable) -> None:
+        """
+        Populate table with game data.
+
+        Args:
+            table: DataTable to populate
+        """
+        for game_meta in self.games:
+            # Truncate description to max 60 chars
+            description = str(game_meta.description)
+            if len(description) > 60:
+                description = description[:57] + "..."
+
+            table.add_row(
+                Text(str(game_meta.name), style="italic #03AC13"),
+                Text(description, style="italic #03AC13"),
+                key=game_meta.id
+            )
+
     def compose(self) -> ComposeResult:
         """Compose UI layout."""
         yield Header()
@@ -81,14 +100,7 @@ class GameSelectorScreen(Screen):
                     "Title",
                     "Description",
                 )
-
-                for game_meta in self.games:
-                    game_id = game_meta.id
-                    table.add_row(
-                        Text(str(game_meta.name), style="italic #03AC13"),
-                        Text(str(game_meta.description), style="italic #03AC13"),
-                        key=game_id
-                    )
+                self._populate_table(table)
 
                 with Container(id="instructions-column"):
                     yield Static(
@@ -137,10 +149,4 @@ class GameSelectorScreen(Screen):
         self.games = self.library.list_games(sort_by="name")
         table = self.query_one(DataTable)
         table.clear()
-
-        for game_meta in self.games:
-            table.add_row(
-                game_meta.name,
-                game_meta.description,
-                key=game_meta.id,
-            )
+        self._populate_table(table)

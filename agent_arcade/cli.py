@@ -44,6 +44,9 @@ def print_help(config: Config):
 
 def main():
     """Main entry point for agent-arcade command."""
+    # Set terminal title
+    print("\033]0;Agent Arcade\007", end="", flush=True)
+
     try:
         # Load configuration
         config = Config.load()

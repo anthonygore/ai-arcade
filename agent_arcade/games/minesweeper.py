@@ -15,7 +15,7 @@ class MinesweeperGame(BaseGame):
 
     ID = "minesweeper"
     NAME = "Minesweeper"
-    DESCRIPTION = "Classic logic puzzle placeholder. Press Q to quit."
+    DESCRIPTION = "Flag the mines, clear the board. One wrong click = boom!"
     CATEGORY = "puzzle"
     AUTHOR = "Agent Arcade Team"
     CONTROLS_HELP = "Q: Quit"

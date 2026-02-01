@@ -105,12 +105,12 @@ class WindowFocusMonitor:
 
                 # Detect focus changes
                 if is_focused and not self._was_focused:
-                    # Window gained focus - do not auto-resume
+                    # Window gained focus - show key bindings
                     logger.info("WindowFocusMonitor: Game window gained focus")
                     _set_tmux_game_keys(self.config, self._game_keys)
                     self._was_focused = True
                 elif not is_focused and self._was_focused:
-                    # Window lost focus - pause game
+                    # Window lost focus - pause game and hide key bindings
                     logger.info("WindowFocusMonitor: Game window lost focus -> calling pause()")
                     self.game.pause()
                     _set_tmux_game_keys(self.config, ())
@@ -198,7 +198,9 @@ class GameRunnerApp(App):
             self._current_game_keys = bindings
             if self.focus_monitor:
                 self.focus_monitor.update_game_keys(bindings)
-            _set_tmux_game_keys(self.config, bindings)
+            # Only update key bindings if game window is focused
+            if self.focus_monitor and self.focus_monitor._was_focused:
+                _set_tmux_game_keys(self.config, bindings)
         elif event == GameEvent.STATE and payload == GameState.QUIT:
             _set_tmux_current_game(self.config, None)
             self._cleanup_after_game()
