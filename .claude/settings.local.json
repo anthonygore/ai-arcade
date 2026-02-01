@@ -77,6 +77,16 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"state\":\"processing\",\"timestamp\":'$(date +%s)'}' > /tmp/claude_arcade_state.json"
+          }
+        ]
+      }
     ]
   }
 }

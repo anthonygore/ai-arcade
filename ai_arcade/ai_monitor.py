@@ -73,10 +73,6 @@ class AIMonitor:
         # Update status bar
         self.tmux.set_agent_state(is_idle)
 
-        # Send notification to game pane when becoming idle
-        if is_idle and self.config.notifications.enabled:
-            self._send_notification()
-
         # Call external callback if set
         if self.on_state_changed:
             self.on_state_changed(is_idle)
@@ -120,24 +116,6 @@ class AIMonitor:
         except Exception:
             # Ignore errors in game monitoring
             pass
-
-    def _send_notification(self) -> None:
-        """Send notification to game window that AI is ready."""
-        if not self.config.notifications.visual:
-            return
-
-        try:
-            message = self.config.notifications.message
-            duration = int(self.config.notifications.flash_duration * 1000)  # Convert to ms
-
-            target = f"{self.tmux.session_name}:{self.tmux.game_window_index}"
-            self.tmux._send_tmux_cmd([
-                "display-message", "-t", target,
-                "-d", str(duration),
-                message
-            ])
-        except Exception as e:
-            print(f"Warning: Could not send notification: {e}")
 
     @property
     def is_idle(self) -> bool:

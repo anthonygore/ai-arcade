@@ -100,6 +100,10 @@ class TmuxManager:
             # Set status bar to fill width
             self._send_tmux_cmd(["set-option", "-t", self.session_name, "status-left-length", "50"])
             self._send_tmux_cmd(["set-option", "-t", self.session_name, "status-right-length", "50"])
+            # Hide window list immediately to prevent flash
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "window-status-current-format", ""])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "window-status-format", ""])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "window-status-separator", ""])
             # Initialize status bar
             self.update_status_bar()
         else:
@@ -300,6 +304,10 @@ class TmuxManager:
         ])
         self._send_tmux_cmd([
             "set-option", "-t", self.session_name, "window-status-format",
+            ""
+        ])
+        self._send_tmux_cmd([
+            "set-option", "-t", self.session_name, "window-status-separator",
             ""
         ])
 
