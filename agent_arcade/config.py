@@ -1,4 +1,4 @@
-"""Configuration management for AI Arcade."""
+"""Configuration management for Agent Arcade."""
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -22,7 +22,7 @@ class AgentConfig:
 class TmuxConfig:
     """Configuration for tmux session."""
 
-    session_name: str = "ai-arcade"
+    session_name: str = "agent-arcade"
     status_bar: bool = True
     mouse_mode: bool = False
 
@@ -40,7 +40,7 @@ class MonitoringConfig:
 class GamesConfig:
     """Configuration for games."""
 
-    metadata_file: str = "~/.ai-arcade/games_metadata.json"
+    metadata_file: str = "~/.agent-arcade/games_metadata.json"
 
 
 @dataclass
@@ -72,7 +72,7 @@ class KeybindingsConfig:
 
 
 class Config:
-    """Main configuration class for AI Arcade."""
+    """Main configuration class for Agent Arcade."""
 
     def __init__(
         self,
@@ -110,7 +110,7 @@ class Config:
         """Return default configuration as dictionary."""
         return {
             "tmux": {
-                "session_name": "ai-arcade",
+                "session_name": "agent-arcade",
                 "status_bar": True,
                 "mouse_mode": False
             },
@@ -120,7 +120,7 @@ class Config:
                 "buffer_lines": 50
             },
             "games": {
-                "metadata_file": "~/.ai-arcade/games_metadata.json",
+                "metadata_file": "~/.agent-arcade/games_metadata.json",
             },
             "notifications": {
                 "enabled": True,
@@ -183,7 +183,7 @@ class Config:
         # Parse tmux config
         tmux_data = data.get("tmux", {})
         tmux = TmuxConfig(
-            session_name=tmux_data.get("session_name", "ai-arcade"),
+            session_name=tmux_data.get("session_name", "agent-arcade"),
             status_bar=tmux_data.get("status_bar", True),
             mouse_mode=tmux_data.get("mouse_mode", False)
         )
@@ -199,7 +199,7 @@ class Config:
         # Parse games config
         games_data = data.get("games", {})
         games = GamesConfig(
-            metadata_file=games_data.get("metadata_file", "~/.ai-arcade/games_metadata.json")
+            metadata_file=games_data.get("metadata_file", "~/.agent-arcade/games_metadata.json")
         )
 
         # Parse notifications config

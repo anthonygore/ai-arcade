@@ -1,4 +1,4 @@
-# AI Arcade - Implementation Plan
+# Agent Arcade - Implementation Plan
 
 ## Overview
 Build a terminal application that lets developers play games while waiting for AI coding agents (Claude Code, Aider, etc.) to process requests. Uses tmux with separate full-screen windows (Window 0: AI agent, Window 1: Games) that you can switch between instantly while maintaining full state in each window.
@@ -6,7 +6,7 @@ Build a terminal application that lets developers play games while waiting for A
 ## User Requirements
 - **Scope**: Full MVP with all core features
 - **TUI Framework**: Textual (modern, well-documented)
-- **Games**: Simple built-in Python games (Snake, 2048) - not nbsdgames initially
+- **Games**: Simple built-in Python games (Snake) - not nbsdgames initially
 - **Packaging**: Proper Python packaging with Poetry for PyPI distribution
 
 ## Technology Stack
@@ -19,8 +19,8 @@ Build a terminal application that lets developers play games while waiting for A
 
 ## Project Structure
 ```
-ai-arcade/
-├── ai_arcade/
+agent-arcade/
+├── agent_arcade/
 │   ├── cli.py                    # Main entry point
 │   ├── config.py                 # Configuration management
 │   ├── tmux_manager.py           # tmux session orchestration
@@ -37,8 +37,7 @@ ai-arcade/
 │   │   └── generic.py            # Generic fallback
 │   └── games/
 │       ├── base_game.py          # Abstract game interface
-│       ├── snake.py              # Snake game
-│       └── game_2048.py          # 2048 puzzle
+│       └── snake.py              # Snake game
 ├── scripts/setup.sh
 ├── tests/
 ├── pyproject.toml
@@ -56,19 +55,19 @@ ai-arcade/
 3. Add dev dependencies: pytest, black, mypy, ruff
 4. Create directory structure
 5. Set up .gitignore
-6. Define Poetry script entry point: `ai-arcade = "ai_arcade.cli:main"`
+6. Define Poetry script entry point: `agent-arcade = "agent_arcade.cli:main"`
 
 **Critical Files**:
 - `pyproject.toml` - Project config with Poetry
-- `ai_arcade/__init__.py` - Package initialization
+- `agent_arcade/__init__.py` - Package initialization
 
 ### Phase 1: Configuration System
 **Goal**: Robust config management with YAML
 
-**Implementation**: `ai_arcade/config.py`
+**Implementation**: `agent_arcade/config.py`
 
 **Key Features**:
-- Load config from `~/.ai-arcade/config.yaml`
+- Load config from `~/.agent-arcade/config.yaml`
 - Create default config on first run
 - Dataclass-based validation
 - Agent lookup methods
@@ -86,7 +85,7 @@ agents:
     ready_patterns: ["^> "]
 
 tmux:
-  session_name: "ai-arcade"
+  session_name: "agent-arcade"
   mouse_mode: true
   status_bar: true
 
@@ -96,15 +95,15 @@ monitoring:
   buffer_lines: 50
 
 games:
-  metadata_file: "~/.ai-arcade/games_metadata.json"
-  save_state_dir: "~/.ai-arcade/save_states"
+  metadata_file: "~/.agent-arcade/games_metadata.json"
+  save_state_dir: "~/.agent-arcade/save_states"
 ```
 
 ### Phase 2: Game Infrastructure
 **Goal**: Create game system with base interface and implementations
 
 #### 2.1 Base Game Interface
-**File**: `ai_arcade/games/base_game.py`
+**File**: `agent_arcade/games/base_game.py`
 
 **Key Classes**:
 - `GameState` enum (MENU, PLAYING, PAUSED, GAME_OVER, QUIT)
@@ -115,13 +114,13 @@ games:
   - `load_save_state()` - Restore from state
 
 #### 2.2 Game Library Manager
-**File**: `ai_arcade/game_library.py`
+**File**: `agent_arcade/game_library.py`
 
 **Key Features**:
 - Discover all game classes via importlib
-- Load/save metadata JSON (`~/.ai-arcade/games_metadata.json`)
+- Load/save metadata JSON (`~/.agent-arcade/games_metadata.json`)
 - Track play stats (last_played, play_count, high_score)
-- Manage save states (`~/.ai-arcade/save_states/{game_id}.json`)
+- Manage save states (`~/.agent-arcade/save_states/{game_id}.json`)
 
 **Methods**:
 - `list_games(sort_by)` - List with sorting options
@@ -129,7 +128,7 @@ games:
 - `update_play_stats()` - Update after session
 
 #### 2.3 Implement Snake Game
-**File**: `ai_arcade/games/snake.py`
+**File**: `agent_arcade/games/snake.py`
 
 **Features**:
 - Textual App with game rendering
@@ -139,20 +138,10 @@ games:
 - Pause/resume with 'p'
 - Save/load state (snake position, direction, food)
 
-#### 2.4 Implement 2048 Game
-**File**: `ai_arcade/games/game_2048.py`
-
-**Features**:
-- 4x4 grid rendering
-- Arrow keys for sliding tiles
-- Tile merging logic
-- Win/lose detection
-- Save/load grid state
-
 ### Phase 3: tmux Manager
 **Goal**: Robust tmux session management
 
-**File**: `ai_arcade/tmux_manager.py`
+**File**: `agent_arcade/tmux_manager.py`
 
 **Key Features**:
 - Check tmux availability (fail fast if missing)
@@ -178,7 +167,7 @@ games:
 **Goal**: Extensible agent system with readiness detection
 
 #### 4.1 Base Agent
-**File**: `ai_arcade/agents/base.py`
+**File**: `agent_arcade/agents/base.py`
 
 **Key Classes**:
 - `AgentStatus` dataclass (is_ready, confidence, matched_pattern)
@@ -190,14 +179,14 @@ games:
 
 #### 4.2 Agent Implementations
 **Files**:
-- `ai_arcade/agents/claude_code.py` - Claude Code config
-- `ai_arcade/agents/aider.py` - Aider config
-- `ai_arcade/agents/generic.py` - Generic fallback
+- `agent_arcade/agents/claude_code.py` - Claude Code config
+- `agent_arcade/agents/aider.py` - Aider config
+- `agent_arcade/agents/generic.py` - Generic fallback
 
 **Agent Factory**: In `agents/__init__.py`, provide `create_agent(id, config)` factory
 
 #### 4.3 AI Monitor
-**File**: `ai_arcade/ai_monitor.py`
+**File**: `agent_arcade/ai_monitor.py`
 
 **Key Features**:
 - Background thread monitoring AI window
@@ -212,7 +201,7 @@ games:
 **Goal**: Orchestrate game selection and execution
 
 #### 5.1 Launcher Menu
-**File**: `ai_arcade/ui/launcher_menu.py`
+**File**: `agent_arcade/ui/launcher_menu.py`
 
 **Features**:
 - Textual App with ASCII art title
@@ -224,7 +213,7 @@ games:
 **Returns**: Dict with selected agent or games_only flag
 
 #### 5.2 Game Selector
-**File**: `ai_arcade/ui/game_selector.py`
+**File**: `agent_arcade/ui/game_selector.py`
 
 **Features**:
 - Textual Screen with DataTable
@@ -233,7 +222,7 @@ games:
 - Arrow keys to navigate, Enter to play, R to resume
 
 #### 5.3 Game Runner
-**File**: `ai_arcade/game_runner.py`
+**File**: `agent_arcade/game_runner.py`
 
 **Features**:
 - Show game selector screen
@@ -247,7 +236,7 @@ games:
 ### Phase 6: Main CLI Orchestration
 **Goal**: Tie everything together
 
-**File**: `ai_arcade/cli.py`
+**File**: `agent_arcade/cli.py`
 
 **Flow**:
 1. Load config
@@ -274,7 +263,7 @@ games:
 
 **Tasks**:
 - Check for tmux (show install instructions if missing)
-- Create `~/.ai-arcade/` directory
+- Create `~/.agent-arcade/` directory
 - Create save_states subdirectory
 
 #### 7.2 Documentation
@@ -282,7 +271,7 @@ games:
 
 **Sections**:
 - Features overview
-- Installation (pip install ai-arcade)
+- Installation (pip install agent-arcade)
 - Quick start guide
 - Keybinding reference
 - Configuration guide
@@ -311,7 +300,7 @@ games:
 1. **Day 1**: Poetry setup, directory structure, config.py
 2. **Day 2**: base_game.py, game_library.py
 3. **Day 3-4**: Snake game implementation
-4. **Day 5**: 2048 game implementation
+4. **Day 5**: Additional game iteration (if needed)
 
 ### Week 2: Integration
 5. **Day 6-7**: tmux_manager.py with testing
@@ -345,7 +334,7 @@ games:
 - **Configurable**: Users can customize patterns per agent
 
 ### 3. Game State Persistence
-- **Format**: JSON files in `~/.ai-arcade/save_states/{game_id}.json`
+- **Format**: JSON files in `~/.agent-arcade/save_states/{game_id}.json`
 - **Save on**: Pause
 - **Delete on**: Game over
 - **Responsibility**: Each game implements own serialization
@@ -376,17 +365,17 @@ games:
 
 ## Critical Files to Build (Priority Order)
 
-1. **`ai_arcade/config.py`** - Foundation for everything
-2. **`ai_arcade/games/base_game.py`** - Game interface
-3. **`ai_arcade/games/snake.py`** - First concrete game
-4. **`ai_arcade/game_library.py`** - Game management
-5. **`ai_arcade/tmux_manager.py`** - Core infrastructure
-6. **`ai_arcade/agents/base.py`** - Agent abstraction
-7. **`ai_arcade/ai_monitor.py`** - Key differentiator
-8. **`ai_arcade/ui/launcher_menu.py`** - First user touchpoint
-9. **`ai_arcade/ui/game_selector.py`** - Game selection
-10. **`ai_arcade/game_runner.py`** - Game orchestration
-11. **`ai_arcade/cli.py`** - Main integration
+1. **`agent_arcade/config.py`** - Foundation for everything
+2. **`agent_arcade/games/base_game.py`** - Game interface
+3. **`agent_arcade/games/snake.py`** - First concrete game
+4. **`agent_arcade/game_library.py`** - Game management
+5. **`agent_arcade/tmux_manager.py`** - Core infrastructure
+6. **`agent_arcade/agents/base.py`** - Agent abstraction
+7. **`agent_arcade/ai_monitor.py`** - Key differentiator
+8. **`agent_arcade/ui/launcher_menu.py`** - First user touchpoint
+9. **`agent_arcade/ui/game_selector.py`** - Game selection
+10. **`agent_arcade/game_runner.py`** - Game orchestration
+11. **`agent_arcade/cli.py`** - Main integration
 
 ## Success Criteria
 - Clean installation via pip

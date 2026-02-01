@@ -1,1 +1,1 @@
-"""Tests for AI Arcade."""
+"""Tests for Agent Arcade."""

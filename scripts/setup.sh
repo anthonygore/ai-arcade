@@ -1,9 +1,9 @@
 #!/bin/bash
-# Post-install setup script for AI Arcade
+# Post-install setup script for Agent Arcade
 
 set -e
 
-echo "🎮 Setting up AI Arcade..."
+echo "🎮 Setting up Agent Arcade..."
 echo ""
 
 # Check for tmux
@@ -22,7 +22,7 @@ if ! command -v tmux &> /dev/null; then
     fi
 
     echo ""
-    echo "After installing tmux, run: ai-arcade"
+    echo "After installing tmux, run: agent-arcade"
     exit 1
 fi
 
@@ -30,7 +30,7 @@ echo "✓ tmux found: $(tmux -V)"
 echo ""
 
 # Create config directory
-CONFIG_DIR="$HOME/.ai-arcade"
+CONFIG_DIR="$HOME/.agent-arcade"
 mkdir -p "$CONFIG_DIR"
 mkdir -p "$CONFIG_DIR/save_states"
 
@@ -48,7 +48,7 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "📖 Quick Start:"
-echo "  1. Run: ai-arcade"
+echo "  1. Run: agent-arcade"
 echo "  2. Select an AI agent or 'Games Only'"
 echo "  3. Press Ctrl+A + Up/Down to switch panes"
 echo ""

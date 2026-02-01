@@ -1,4 +1,4 @@
-"""Base game interface for AI Arcade games."""
+"""Base game interface for Agent Arcade games."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass

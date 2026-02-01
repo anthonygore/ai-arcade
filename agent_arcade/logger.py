@@ -1,10 +1,10 @@
-"""Logging utility for AI Arcade.
+"""Logging utility for Agent Arcade.
 
 Provides a simple logger that writes to a file for debugging games and apps.
 This is especially useful for Textual apps where print() doesn't work.
 
 Usage:
-    from ai_arcade.logger import logger
+    from agent_arcade.logger import logger
 
     logger.debug("Debug message")
     logger.info("Info message")
@@ -16,13 +16,13 @@ import logging
 from pathlib import Path
 
 # Create logs directory in user's home
-LOG_DIR = Path.home() / ".ai-arcade" / "logs"
+LOG_DIR = Path.home() / ".agent-arcade" / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOG_FILE = LOG_DIR / "debug.log"
 
 # Configure logger
-logger = logging.getLogger("ai_arcade")
+logger = logging.getLogger("agent_arcade")
 logger.setLevel(logging.DEBUG)
 
 # Remove any existing handlers
@@ -79,6 +79,6 @@ logger.propagate = False
 
 # Log startup
 logger.info("=" * 80)
-logger.info("AI Arcade logging initialized")
+logger.info("Agent Arcade logging initialized")
 logger.info(f"Log file: {LOG_FILE}")
 logger.info("=" * 80)

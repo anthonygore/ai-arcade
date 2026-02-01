@@ -3,6 +3,7 @@
 from .base import BaseAgent, AgentStatus
 from .claude_code import ClaudeCodeAgent
 from .codex import CodexAgent
+from .generic import GenericAgent
 
 # Agent class registry
 AGENT_CLASSES = {
@@ -26,4 +27,4 @@ def create_agent(agent_id: str, config) -> BaseAgent:
     return agent_class(config)
 
 
-__all__ = ["BaseAgent", "AgentStatus", "create_agent"]
+__all__ = ["BaseAgent", "AgentStatus", "GenericAgent", "create_agent"]

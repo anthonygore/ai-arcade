@@ -1,5 +1,7 @@
-poetry run ai-arcade codex
+poetry run agent-arcade codex
 
-tmux capture-pane -t ai-arcade:1 -p -S -200 > ~/game_error.txt && cat ~/game_error.txt
+tmux capture-pane -t agent-arcade:1 -p -S -200 > ~/game_error.txt && cat ~/game_error.txt
 
-tail -f ~/.ai-arcade/logs/debug.log
+tail -f ~/.agent-arcade/logs/debug.log
+
+TMP_PATH="$(mktemp -d)"; ln -sf /opt/homebrew/bin/tmux "$TMP_PATH/tmux"; ln -sf "$(which poetry)" "$TMP_PATH/poetry"; PATH="$TMP_PATH:/usr/bin:/bin" poetry run agent-arcade

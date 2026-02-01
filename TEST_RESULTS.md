@@ -1,4 +1,4 @@
-# AI Arcade - Test Results
+# Agent Arcade - Test Results
 
 ## ✅ Installation & Setup Complete
 
@@ -29,10 +29,10 @@ All 25 packages installed successfully:
 - **Location**: `/opt/homebrew/bin/tmux`
 
 ### 4. Configuration Setup ✅
-- **Config directory**: `~/.ai-arcade/` created
-- **Config file**: `~/.ai-arcade/config.yaml` created
-- **Metadata file**: `~/.ai-arcade/games_metadata.json` created
-- **Save states directory**: `~/.ai-arcade/save_states/` created
+- **Config directory**: `~/.agent-arcade/` created
+- **Config file**: `~/.agent-arcade/config.yaml` created
+- **Metadata file**: `~/.agent-arcade/games_metadata.json` created
+- **Save states directory**: `~/.agent-arcade/save_states/` created
 
 ---
 
@@ -40,8 +40,7 @@ All 25 packages installed successfully:
 
 ### Game Library Discovery ✅
 ```
-✅ Found 2 games:
-  - 2048: Combine tiles to reach 2048! Addictive number puzzle game.
+✅ Found 1 game:
   - Snake: Classic snake game. Eat food, grow longer, avoid walls and yourself!
 ```
 
@@ -49,7 +48,7 @@ All 25 packages installed successfully:
 ```
 ✅ Config loaded successfully
 Available agents: ['claude_code', 'codex']
-Config file created at: ~/.ai-arcade/config.yaml
+Config file created at: ~/.agent-arcade/config.yaml
 ```
 
 ### CLI Module Import ✅
@@ -60,14 +59,14 @@ Config file created at: ~/.ai-arcade/config.yaml
 ### Setup Script Execution ✅
 ```
 ✓ tmux found: tmux 3.6a
-✓ Created config directory: /Users/anthonygore/.ai-arcade
-✓ Existing config found at /Users/anthonygore/.ai-arcade/config.yaml
+✓ Created config directory: /Users/anthonygore/.agent-arcade
+✓ Existing config found at /Users/anthonygore/.agent-arcade/config.yaml
 ✅ Setup complete!
 ```
 
 ---
 
-## 🎮 How to Run AI Arcade
+## 🎮 How to Run Agent Arcade
 
 ### Option 1: Games Only Mode (No AI Agent)
 
@@ -75,9 +74,9 @@ Config file created at: ~/.ai-arcade/config.yaml
 # Add Poetry to PATH
 export PATH="/Users/anthonygore/.local/bin:$PATH"
 
-# Run AI Arcade
-cd /Users/anthonygore/Workspace/ai-arcade
-poetry run ai-arcade
+# Run Agent Arcade
+cd /Users/anthonygore/Workspace/agent-arcade
+poetry run agent-arcade
 ```
 
 Then select **"🎮 Games Only"** from the launcher menu.
@@ -90,10 +89,10 @@ Then select **"🎮 Games Only"** from the launcher menu.
 # or
 # pip install aider-chat
 
-# Run AI Arcade
+# Run Agent Arcade
 export PATH="/Users/anthonygore/.local/bin:$PATH"
-cd /Users/anthonygore/Workspace/ai-arcade
-poetry run ai-arcade
+cd /Users/anthonygore/Workspace/agent-arcade
+poetry run agent-arcade
 ```
 
 Then select your AI agent from the launcher menu (e.g., "🤖 Claude Code + Games").
@@ -102,13 +101,11 @@ Then select your AI agent from the launcher menu (e.g., "🤖 Claude Code + Game
 
 ```bash
 export PATH="/Users/anthonygore/.local/bin:$PATH"
-cd /Users/anthonygore/Workspace/ai-arcade
+cd /Users/anthonygore/Workspace/agent-arcade
 
 # Play Snake
-poetry run python -m ai_arcade.games.snake
+poetry run python -m agent_arcade.games.snake
 
-# Play 2048
-poetry run python -m ai_arcade.games.game_2048
 ```
 
 ---
@@ -121,15 +118,15 @@ poetry run python -m ai_arcade.games.game_2048
 | Poetry | ✅ Ready | v2.3.1 |
 | tmux | ✅ Ready | v3.6a |
 | Dependencies | ✅ Installed | 25 packages |
-| Config | ✅ Created | ~/.ai-arcade/config.yaml |
-| Games | ✅ Discovered | 2 games (Snake, 2048) |
+| Config | ✅ Created | ~/.agent-arcade/config.yaml |
+| Games | ✅ Discovered | 1 game (Snake) |
 | CLI | ✅ Working | Imports successfully |
 
 ---
 
 ## 🎯 Next Steps
 
-### To Use AI Arcade:
+### To Use Agent Arcade:
 
 1. **Set up PATH** (add to your `~/.zshrc` or `~/.bashrc`):
    ```bash
@@ -138,12 +135,12 @@ poetry run python -m ai_arcade.games.game_2048
 
 2. **Run the application**:
    ```bash
-   cd /Users/anthonygore/Workspace/ai-arcade
-   poetry run ai-arcade
+   cd /Users/anthonygore/Workspace/agent-arcade
+   poetry run agent-arcade
    ```
 
 3. **Select mode**:
-   - Games Only: Play Snake or 2048
+   - Games Only: Play Snake
    - With AI Agent: Requires Claude Code or Aider installed
 
 ### To Install AI Agents:
@@ -167,7 +164,7 @@ npm install -g cursor-cli
 
 ## 🐛 Known Limitations
 
-1. **Snake & 2048 Save States**: Currently only save scores, not full game state
+1. **Snake Save States**: Currently only save scores, not full game state
 2. **AI Agent Detection**: Requires AI CLI tools to be in PATH
 3. **tmux Required**: Dual-pane mode requires tmux (now installed ✅)
 
@@ -191,7 +188,7 @@ npm install -g cursor-cli
 
 ## 🎉 Summary
 
-**AI Arcade is fully installed and ready to use!**
+**Agent Arcade is fully installed and ready to use!**
 
 All systems operational:
 - ✅ 25+ Python files created (~3,000+ LOC)
@@ -201,7 +198,7 @@ All systems operational:
 - ✅ tmux installed and ready
 - ✅ CLI module functional
 
-**To start playing**: Just run `poetry run ai-arcade` and select "Games Only"!
+**To start playing**: Just run `poetry run agent-arcade` and select "Games Only"!
 
 ---
 

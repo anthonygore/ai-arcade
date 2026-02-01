@@ -1,10 +1,13 @@
-"""Main CLI entry point for AI Arcade."""
+"""Main CLI entry point for Agent Arcade."""
 
 import atexit
+import os
 import signal
 import sys
 import threading
 import time
+import tempfile
+from pathlib import Path
 
 from .agents import create_agent
 from .ai_monitor import AIMonitor
@@ -22,10 +25,10 @@ def print_help(config: Config):
         agent_lines.append(f"  - {label}")
 
     usage = [
-        "AI Arcade - run an AI agent alongside the game runner",
+        "Agent Arcade - run an AI agent alongside the game runner",
         "",
         "Usage:",
-        "  ai-arcade [agent]",
+        "  agent-arcade [agent]",
         "",
         "Arguments:",
         "  agent        Agent id or name to launch (default: claude_code)",
@@ -40,7 +43,7 @@ def print_help(config: Config):
 
 
 def main():
-    """Main entry point for ai-arcade command."""
+    """Main entry point for agent-arcade command."""
     try:
         # Load configuration
         config = Config.load()
@@ -54,11 +57,10 @@ def main():
         agent_selector = sys.argv[1] if len(sys.argv) > 1 else "claude_code"
 
         # Launch directly with agent + Games
-        print("🎮 Starting AI Arcade...")
         run_with_agent(config, agent_selector)
 
     except KeyboardInterrupt:
-        print("\n👋 Exiting AI Arcade.")
+        print("\n👋 Exiting Agent Arcade.")
         sys.exit(0)
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
@@ -79,6 +81,8 @@ def run_with_agent(config, agent_selector: str):
         print(f"❌ Error: Unknown agent '{agent_selector}'")
         sys.exit(1)
 
+    print(f"agent-arcade launching with {agent_config.name}")
+
     # Create agent instance
     agent = create_agent(agent_config.id, agent_config)
 
@@ -86,10 +90,13 @@ def run_with_agent(config, agent_selector: str):
     working_dir = agent.get_working_directory()
 
     # Create tmux manager
-    print(f"⚙️  Setting up tmux session for {agent_config.name}...")
+    # Minimal launch output to keep the parent terminal clean.
 
     try:
-        tmux = TmuxManager(config)
+        crash_file = Path(tempfile.gettempdir()) / f"agent-arcade-crash-{os.getpid()}.txt"
+        if crash_file.exists():
+            crash_file.unlink()
+        tmux = TmuxManager(config, crash_file=crash_file)
     except RuntimeError as e:
         print(f"❌ {e}")
         sys.exit(1)
@@ -106,7 +113,7 @@ def run_with_agent(config, agent_selector: str):
 
     def signal_handler(sig, frame):
         """Handle termination signals."""
-        print("\n👋 Exiting AI Arcade...")
+        print("\n👋 Exiting Agent Arcade...")
         cleanup()
         sys.exit(0)
 
@@ -161,29 +168,36 @@ def run_with_agent(config, agent_selector: str):
 
         # Launch AI agent in top pane
         cmd, args = agent.get_launch_command()
-        print(f"🤖 Launching {agent_config.name}...")
-        tmux.launch_ai_agent(cmd, args, working_dir)
+        # launch agent
+        crash_label = agent_config.name or agent_config.id
+        crash_subject = "Claude" if agent_config.id == "claude_code" else crash_label
+        tmux.launch_ai_agent(
+            cmd,
+            args,
+            working_dir,
+            crash_label=crash_label,
+            crash_subject=crash_subject
+        )
 
         # Launch game runner in bottom pane
-        print("🎮 Starting game runner...")
+        # launch game runner
         tmux.launch_game_runner()
 
         # Start AI monitoring
-        print("👁️  Starting AI monitor...")
+        # start AI monitor
         monitor = AIMonitor(tmux, agent, config)
         monitor.start()
         start_pane_monitor()
 
-        # Show usage instructions
-        print("\n" + "="*60)
-        print("🎮 AI ARCADE is ready!")
-        print("="*60)
-        print(f"  Ctrl+Space: Toggle between AI and Games windows")
-        print("\nPress Ctrl+C to exit AI Arcade")
-        print("="*60 + "\n")
+        # No banner output; keep startup minimal.
 
         # Attach to tmux session (blocking)
         tmux.attach()
+        if crash_file.exists():
+            message = crash_file.read_text().strip()
+            crash_file.unlink()
+            if message:
+                print(f"\033[31m{message}\033[0m", file=sys.stderr)
 
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)

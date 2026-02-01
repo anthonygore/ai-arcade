@@ -1,4 +1,4 @@
-# 🎮 AI Arcade
+# 🎮 Agent Arcade
 
 **Play terminal games while AI coding agents think.**
 
@@ -9,7 +9,7 @@ Stop context-switching to your phone while waiting for Claude Code, Aider, or ot
 ## ✨ Features
 
 - 🤖 **Multi-Agent Support**: Works with Claude Code, Aider, Cursor, and more
-- 🎮 **Built-in Games**: Snake, 2048, and more puzzle games
+- 🎮 **Built-in Games**: Snake and more puzzle games
 - 🔄 **Save States**: Pause and resume games anytime
 - 📊 **Smart Monitoring**: Detects when AI is ready for input
 - ⌨️ **Seamless Switching**: Quick keybindings to switch between AI and games
@@ -30,35 +30,35 @@ Stop context-switching to your phone while waiting for Claude Code, Aider, or ot
 ### Via pip (Recommended)
 
 ```bash
-pip install ai-arcade
-ai-arcade
+pip install agent-arcade
+agent-arcade
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/anthonygore/ai-arcade
-cd ai-arcade
+git clone https://github.com/anthonygore/agent-arcade
+cd agent-arcade
 pip install -e .
-ai-arcade
+agent-arcade
 ```
 
 ### With Poetry (for development)
 
 ```bash
-git clone https://github.com/anthonygore/ai-arcade
-cd ai-arcade
+git clone https://github.com/anthonygore/agent-arcade
+cd agent-arcade
 poetry install
-poetry run ai-arcade
+poetry run agent-arcade
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-1. **Launch AI Arcade**:
+1. **Launch Agent Arcade**:
    ```bash
-   ai-arcade
+   agent-arcade
    ```
 
 2. **Select your AI agent** from the menu (or choose "Games Only")
@@ -77,11 +77,6 @@ Classic arcade action. Eat food, grow longer, avoid walls and yourself!
 - **Controls**: Arrow keys to move, P to pause, Q to quit
 - **Goal**: Get the highest score possible
 
-### 2048 🔢
-Addictive number puzzle. Combine tiles to reach 2048!
-- **Controls**: Arrow keys to slide, P to pause, R to restart, Q to quit
-- **Goal**: Combine tiles to create a 2048 tile
-
 ---
 
 ## 🤖 Supported AI Agents
@@ -97,7 +92,7 @@ Addictive number puzzle. Combine tiles to reach 2048!
 
 ## ⚙️ Configuration
 
-Configuration file location: `~/.ai-arcade/config.yaml`
+Configuration file location: `~/.agent-arcade/config.yaml`
 
 The configuration file is created automatically on first run with sensible defaults.
 
@@ -115,7 +110,7 @@ agents:
 
 # tmux Settings
 tmux:
-  session_name: "ai-arcade"
+  session_name: "agent-arcade"
   mouse_mode: true
   status_bar: true
 
@@ -132,7 +127,7 @@ notifications:
 
 ### Adding Custom AI Agents
 
-To add a custom AI agent, edit `~/.ai-arcade/config.yaml`:
+To add a custom AI agent, edit `~/.agent-arcade/config.yaml`:
 
 ```yaml
 agents:
@@ -148,11 +143,11 @@ agents:
 
 ## 🎯 How It Works
 
-1. **Dual-Window Setup**: AI Arcade creates a tmux session with two full-screen windows:
+1. **Dual-Window Setup**: Agent Arcade creates a tmux session with two full-screen windows:
    - **Window 0 (AI Agent)**: Your AI coding agent runs here with full terminal space
    - **Window 1 (Games)**: Game runner with full terminal space
 
-2. **Smart Monitoring**: AI Arcade watches the AI agent's output for:
+2. **Smart Monitoring**: Agent Arcade watches the AI agent's output for:
    - Configured regex patterns (e.g., prompt indicators)
    - Inactivity timeout (no output for N seconds = ready)
 
@@ -165,12 +160,11 @@ agents:
 ## 📁 Project Structure
 
 ```
-~/.ai-arcade/
+~/.agent-arcade/
 ├── config.yaml          # Main configuration
 ├── games_metadata.json  # Game stats and metadata
 └── save_states/         # Saved game states
-    ├── snake.json
-    └── 2048.json
+    └── snake.json
 ```
 
 ---
@@ -229,14 +223,14 @@ poetry run pytest
 ### Code Formatting
 
 ```bash
-poetry run black ai_arcade/
-poetry run ruff check ai_arcade/
+poetry run black agent_arcade/
+poetry run ruff check agent_arcade/
 ```
 
 ### Type Checking
 
 ```bash
-poetry run mypy ai_arcade/
+poetry run mypy agent_arcade/
 ```
 
 ---
@@ -261,7 +255,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Adding New Games
 
-1. Create a new game class in `ai_arcade/games/`
+1. Create a new game class in `agent_arcade/games/`
 2. Inherit from `BaseGame` and implement required methods
 3. Add game metadata
 4. Test your game
@@ -271,8 +265,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📮 Support
 
-- **Issues**: [GitHub Issues](https://github.com/anthonygore/ai-arcade/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/anthonygore/ai-arcade/discussions)
+- **Issues**: [GitHub Issues](https://github.com/anthonygore/agent-arcade/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/anthonygore/agent-arcade/discussions)
 
 ---
 

@@ -1,4 +1,4 @@
-"""Game selection UI for AI Arcade."""
+"""Game selection UI for Agent Arcade."""
 
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal

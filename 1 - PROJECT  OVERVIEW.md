@@ -1,4 +1,4 @@
-# AI Arcade - Project Overview
+# Agent Arcade - Project Overview
 
 ## Intention
 
@@ -9,7 +9,7 @@ This solves the problem of context-switching and dead time during AI agent proce
 ## Core Features
 
 ### 1. Launch Interface
-- Single command: `ai-arcade`
+- Single command: `agent-arcade`
 - On launch, presents a menu allowing users to:
   - Choose which AI CLI tool(s) to launch
   - Go directly to game runner
@@ -58,16 +58,16 @@ This solves the problem of context-switching and dead time during AI agent proce
 - Return to menu without losing game progress
 
 ### 6. Installation & Distribution
-- Installable via pip: `pip install ai-arcade`
+- Installable via pip: `pip install agent-arcade`
 - Alternative: Homebrew formula for Mac users
 - Automated setup script that:
   - Installs tmux if not present
   - Downloads and compiles nbsdgames collection
-  - Creates config directory at `~/.ai-arcade/`
+  - Creates config directory at `~/.agent-arcade/`
   - Sets up default configuration
 
 ### 7. Configuration
-- YAML config file at `~/.ai-arcade/config.yaml`
+- YAML config file at `~/.agent-arcade/config.yaml`
 - Configurable options:
   - Available AI agents and their commands
   - Keybindings for switching panes
@@ -128,8 +128,8 @@ This solves the problem of context-switching and dead time during AI agent proce
 
 ### Project Structure
 ```
-ai-arcade/
-├── ai_arcade/
+agent-arcade/
+├── agent_arcade/
 │   ├── __init__.py
 │   ├── cli.py              # Main entry point, launcher menu
 │   ├── tmux_manager.py     # tmux session creation and management
@@ -242,7 +242,7 @@ class LauncherMenu:
 # Pseudocode
 class TmuxManager:
     def __init__(self, config):
-        self.session_name = "ai-arcade"
+        self.session_name = "agent-arcade"
         self.config = config
     
     def create_session(self):
@@ -347,17 +347,17 @@ class Game:
 
 ```bash
 # User installs via pip
-pip install ai-arcade
+pip install agent-arcade
 
 # Post-install script runs automatically:
 # 1. Check for tmux, install if missing (brew install tmux on Mac)
-# 2. Create ~/.ai-arcade/ directory
+# 2. Create ~/.agent-arcade/ directory
 # 3. Download and compile nbsdgames
 # 4. Generate default config.yaml
 # 5. Initialize metadata database
 
 # User launches
-ai-arcade
+agent-arcade
 
 # Shows launcher menu where user selects:
 # - Which AI agent to use (or none)
@@ -400,7 +400,7 @@ keybindings:
 
 # Games configuration
 games:
-  directory: "~/.ai-arcade/games"
+  directory: "~/.agent-arcade/games"
   auto_update: true
 
 # Monitoring
@@ -424,7 +424,7 @@ ui:
 
 ### Example 1: Launch with AI Agent
 ```
-$ ai-arcade
+$ agent-arcade
 
 ┌─────────────────────────────────────┐
 │         🎮 AI ARCADE 🎮            │
@@ -443,7 +443,7 @@ Select option: 1
 
 ### Example 2: Games Only
 ```
-$ ai-arcade
+$ agent-arcade
 
 [User selects "Games Only"]
 
@@ -453,7 +453,7 @@ $ ai-arcade
 
 ### Example 3: First-time Setup
 ```
-$ ai-arcade
+$ agent-arcade
 
 ⚠️  No AI agents detected!
 

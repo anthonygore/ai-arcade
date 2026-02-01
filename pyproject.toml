@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "ai-arcade"
+name = "agent-arcade"
 version = "0.1.0"
 description = "Play terminal games while AI coding agents think"
 authors = ["Anthony Gore <anthony@vuejsdevelopers.com>"]
 readme = "README.md"
 license = "MIT"
-repository = "https://github.com/anthonygore/ai-arcade"
-homepage = "https://github.com/anthonygore/ai-arcade"
-documentation = "https://github.com/anthonygore/ai-arcade#readme"
+repository = "https://github.com/anthonygore/agent-arcade"
+homepage = "https://github.com/anthonygore/agent-arcade"
+documentation = "https://github.com/anthonygore/agent-arcade#readme"
 keywords = ["ai", "games", "terminal", "productivity", "tmux", "textual"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -33,7 +33,7 @@ ruff = "^0.1.0"
 types-PyYAML = "^6.0"
 
 [tool.poetry.scripts]
-ai-arcade = "ai_arcade.cli:main"
+agent-arcade = "agent_arcade.cli:main"
 
 [tool.black]
 line-length = 88

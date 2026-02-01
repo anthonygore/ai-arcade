@@ -1,8 +1,8 @@
-# AI Arcade - Window-Based UI Update
+# Agent Arcade - Window-Based UI Update
 
 ## ✅ Complete - All Changes Implemented
 
-Successfully updated AI Arcade from split-pane layout to full-screen window-based layout for better visibility and UX.
+Successfully updated Agent Arcade from split-pane layout to full-screen window-based layout for better visibility and UX.
 
 ---
 
@@ -23,7 +23,7 @@ Successfully updated AI Arcade from split-pane layout to full-screen window-base
 
 ## 📝 Files Modified
 
-### 1. `ai_arcade/tmux_manager.py` ✅
+### 1. `agent_arcade/tmux_manager.py` ✅
 **Changes**:
 - Changed from `split-window` to `new-window` for creating separate full-screen windows
 - Updated from pane IDs to window indices (0 and 1)
@@ -36,13 +36,13 @@ Successfully updated AI Arcade from split-pane layout to full-screen window-base
 - Updated keybindings to use `next-window`, `previous-window`, and direct selection (0, 1)
 - Enhanced status bar to show current window info
 
-### 2. `ai_arcade/ai_monitor.py` ✅
+### 2. `agent_arcade/ai_monitor.py` ✅
 **Changes**:
 - Updated to use `capture_window_output()` instead of `capture_pane_output()`
 - Changed from `ai_pane_id` to `ai_window_index`
 - Updated notification target to use window index instead of pane ID
 
-### 3. `ai_arcade/config.py` ✅
+### 3. `agent_arcade/config.py` ✅
 **Changes**:
 - **KeybindingsConfig dataclass updated**:
   - Removed: `switch_to_ai` and `switch_to_game`
@@ -53,7 +53,7 @@ Successfully updated AI Arcade from split-pane layout to full-screen window-base
   - Updated keybindings in `get_default_config()`
   - Updated keybindings parsing in `from_dict()`
 
-### 4. `ai_arcade/cli.py` ✅
+### 4. `agent_arcade/cli.py` ✅
 **Changes**:
 - Updated usage instructions to show:
   - `Ctrl+A + n`: Next window
@@ -123,7 +123,7 @@ Successfully updated AI Arcade from split-pane layout to full-screen window-base
 
 ### 5. **Better Game Experience** 🎮
 - Games have full terminal to work with
-- Better for games that need space (Snake, 2048)
+- Better for games that need space (Snake)
 - Easier to see game elements
 
 ---
@@ -134,12 +134,12 @@ To test the new window-based UI:
 
 ```bash
 # Kill any existing session
-tmux kill-session -t ai-arcade
+tmux kill-session -t agent-arcade
 
-# Run AI Arcade
+# Run Agent Arcade
 export PATH="/Users/anthonygore/.local/bin:$PATH"
-cd /Users/anthonygore/Workspace/ai-arcade
-poetry run ai-arcade
+cd /Users/anthonygore/Workspace/agent-arcade
+poetry run agent-arcade
 ```
 
 **Expected behavior**:
@@ -156,7 +156,7 @@ poetry run ai-arcade
 - **Files modified**: 6
 - **Lines changed**: ~150+
 - **Breaking changes**: Config file (old configs need to regenerate)
-- **Backward compatibility**: ⚠️ Users will need to delete old `~/.ai-arcade/config.yaml` to get new keybindings
+- **Backward compatibility**: ⚠️ Users will need to delete old `~/.agent-arcade/config.yaml` to get new keybindings
 
 ---
 
@@ -166,12 +166,12 @@ If users have an existing config file, they should:
 
 1. **Option A - Start fresh** (recommended):
    ```bash
-   rm ~/.ai-arcade/config.yaml
-   ai-arcade  # Will create new config with window keybindings
+   rm ~/.agent-arcade/config.yaml
+   agent-arcade  # Will create new config with window keybindings
    ```
 
 2. **Option B - Manual update**:
-   Edit `~/.ai-arcade/config.yaml` and change:
+   Edit `~/.agent-arcade/config.yaml` and change:
    ```yaml
    # Old
    keybindings:
@@ -205,7 +205,7 @@ If users have an existing config file, they should:
 
 ## 🎉 Result
 
-AI Arcade now provides a superior user experience with full-screen windows for both the AI agent and games, making it much more comfortable to use during AI wait times!
+Agent Arcade now provides a superior user experience with full-screen windows for both the AI agent and games, making it much more comfortable to use during AI wait times!
 
 **Date**: January 31, 2026
 **Status**: ✅ Complete and ready to test

@@ -1,8 +1,8 @@
-# AI Arcade - Implementation Summary
+# Agent Arcade - Implementation Summary
 
 ## ✅ Completed MVP
 
-All core features have been implemented! AI Arcade is ready for testing and use.
+All core features have been implemented! Agent Arcade is ready for testing and use.
 
 ---
 
@@ -15,21 +15,20 @@ All core features have been implemented! AI Arcade is ready for testing and use.
 - ✅ Package initialization files
 
 ### Phase 1: Configuration System ✅
-- ✅ `ai_arcade/config.py` - Full configuration management
+- ✅ `agent_arcade/config.py` - Full configuration management
 - ✅ YAML-based config with dataclasses
 - ✅ Default configuration embedded
 - ✅ Agent, tmux, monitoring, games, UI, keybindings config
 
 ### Phase 2: Game Infrastructure ✅
-- ✅ `ai_arcade/games/base_game.py` - Abstract game interface
-- ✅ `ai_arcade/game_library.py` - Game discovery and metadata management
-- ✅ `ai_arcade/games/snake.py` - Complete Snake game
-- ✅ `ai_arcade/games/game_2048.py` - Complete 2048 puzzle game
+- ✅ `agent_arcade/games/base_game.py` - Abstract game interface
+- ✅ `agent_arcade/game_library.py` - Game discovery and metadata management
+- ✅ `agent_arcade/games/snake.py` - Complete Snake game
 - ✅ Save state management
 - ✅ Play statistics tracking
 
 ### Phase 3: tmux Manager ✅
-- ✅ `ai_arcade/tmux_manager.py` - Complete tmux session management
+- ✅ `agent_arcade/tmux_manager.py` - Complete tmux session management
 - ✅ Dual-pane creation (70/30 split)
 - ✅ Pane command execution
 - ✅ Output capture for monitoring
@@ -37,24 +36,24 @@ All core features have been implemented! AI Arcade is ready for testing and use.
 - ✅ Session cleanup
 
 ### Phase 4: AI Agent Integration ✅
-- ✅ `ai_arcade/agents/base.py` - Base agent class
-- ✅ `ai_arcade/agents/claude_code.py` - Claude Code support
-- ✅ `ai_arcade/agents/aider.py` - Aider support
-- ✅ `ai_arcade/agents/generic.py` - Generic CLI support
-- ✅ `ai_arcade/agents/__init__.py` - Agent factory
-- ✅ `ai_arcade/ai_monitor.py` - Background monitoring thread
+- ✅ `agent_arcade/agents/base.py` - Base agent class
+- ✅ `agent_arcade/agents/claude_code.py` - Claude Code support
+- ✅ `agent_arcade/agents/aider.py` - Aider support
+- ✅ `agent_arcade/agents/generic.py` - Generic CLI support
+- ✅ `agent_arcade/agents/__init__.py` - Agent factory
+- ✅ `agent_arcade/ai_monitor.py` - Background monitoring thread
 - ✅ Pattern matching + inactivity detection
 - ✅ Visual notifications via tmux
 
 ### Phase 5: UI Components ✅
-- ✅ `ai_arcade/ui/launcher_menu.py` - Initial launcher menu
-- ✅ `ai_arcade/ui/game_selector.py` - Game selection screen
-- ✅ `ai_arcade/game_runner.py` - Game orchestration
+- ✅ `agent_arcade/ui/launcher_menu.py` - Initial launcher menu
+- ✅ `agent_arcade/ui/game_selector.py` - Game selection screen
+- ✅ `agent_arcade/game_runner.py` - Game orchestration
 - ✅ Agent detection
 - ✅ Play/resume functionality
 
 ### Phase 6: Main CLI ✅
-- ✅ `ai_arcade/cli.py` - Complete entry point
+- ✅ `agent_arcade/cli.py` - Complete entry point
 - ✅ Launcher menu integration
 - ✅ Games-only mode
 - ✅ Dual-pane with AI agent mode
@@ -73,28 +72,27 @@ All core features have been implemented! AI Arcade is ready for testing and use.
 
 ### Files Created: 25+
 
-**Core Modules (11)**:
-1. `ai_arcade/__init__.py`
-2. `ai_arcade/config.py`
-3. `ai_arcade/game_library.py`
-4. `ai_arcade/tmux_manager.py`
-5. `ai_arcade/ai_monitor.py`
-6. `ai_arcade/game_runner.py`
-7. `ai_arcade/cli.py`
-8. `ai_arcade/games/base_game.py`
-9. `ai_arcade/games/snake.py`
-10. `ai_arcade/games/game_2048.py`
-11. Various `__init__.py` files
+**Core Modules (10)**:
+1. `agent_arcade/__init__.py`
+2. `agent_arcade/config.py`
+3. `agent_arcade/game_library.py`
+4. `agent_arcade/tmux_manager.py`
+5. `agent_arcade/ai_monitor.py`
+6. `agent_arcade/game_runner.py`
+7. `agent_arcade/cli.py`
+8. `agent_arcade/games/base_game.py`
+9. `agent_arcade/games/snake.py`
+10. Various `__init__.py` files
 
 **UI Components (2)**:
-12. `ai_arcade/ui/launcher_menu.py`
-13. `ai_arcade/ui/game_selector.py`
+12. `agent_arcade/ui/launcher_menu.py`
+13. `agent_arcade/ui/game_selector.py`
 
 **Agent System (4)**:
-14. `ai_arcade/agents/base.py`
-15. `ai_arcade/agents/claude_code.py`
-16. `ai_arcade/agents/aider.py`
-17. `ai_arcade/agents/generic.py`
+14. `agent_arcade/agents/base.py`
+15. `agent_arcade/agents/claude_code.py`
+16. `agent_arcade/agents/aider.py`
+17. `agent_arcade/agents/generic.py`
 
 **Configuration & Documentation (5)**:
 18. `pyproject.toml`
@@ -118,7 +116,7 @@ You'll need to install Poetry first (if not already installed):
 curl -sSL https://install.python-poetry.org | python3 -
 
 # Install project dependencies
-cd /Users/anthonygore/Workspace/ai-arcade
+cd /Users/anthonygore/Workspace/agent-arcade
 poetry install
 ```
 
@@ -127,9 +125,9 @@ poetry install
 #### Test Games Only Mode:
 
 ```bash
-poetry run ai-arcade
+poetry run agent-arcade
 # Select "Games Only" from menu
-# Try Snake and 2048 games
+# Try Snake game
 ```
 
 #### Test with AI Agent (if you have tmux):
@@ -138,8 +136,8 @@ poetry run ai-arcade
 # Make sure tmux is installed
 brew install tmux  # macOS
 
-# Run AI Arcade
-poetry run ai-arcade
+# Run Agent Arcade
+poetry run agent-arcade
 # Select an AI agent from menu
 ```
 
@@ -153,16 +151,14 @@ poetry run ai-arcade
 
 ```bash
 # Test game library
-poetry run python -c "from ai_arcade.game_library import GameLibrary; lib = GameLibrary(); print(lib.list_games())"
+poetry run python -c "from agent_arcade.game_library import GameLibrary; lib = GameLibrary(); print(lib.list_games())"
 
 # Test config loading
-poetry run python -c "from ai_arcade.config import Config; cfg = Config.load(); print(cfg.list_available_agents())"
+poetry run python -c "from agent_arcade.config import Config; cfg = Config.load(); print(cfg.list_available_agents())"
 
 # Test Snake game directly
-poetry run python -m ai_arcade.games.snake
+poetry run python -m agent_arcade.games.snake
 
-# Test 2048 game directly
-poetry run python -m ai_arcade.games.game_2048
 ```
 
 ---
@@ -172,14 +168,14 @@ poetry run python -m ai_arcade.games.game_2048
 ### Minor Issues:
 1. **Poetry not installed** - User needs to install Poetry manually
 2. **tmux dependency** - Not automatically installed
-3. **Game state persistence** - Snake and 2048 have placeholder save/load (scores only)
+3. **Game state persistence** - Snake has placeholder save/load (scores only)
 
 ### Future Enhancements:
 1. **Add more games** - Tetris, Pong, etc.
-2. **Full save state support** - Complete game state serialization for Snake/2048
+2. **Full save state support** - Complete game state serialization for Snake
 3. **Test suite** - Unit tests for all components
 4. **Type checking** - Run mypy and fix any issues
-5. **Package to PyPI** - Publish for `pip install ai-arcade`
+5. **Package to PyPI** - Publish for `pip install agent-arcade`
 6. **Homebrew formula** - Create formula for easy macOS installation
 7. **CI/CD** - GitHub Actions for testing and releases
 
@@ -205,7 +201,7 @@ poetry run python -m ai_arcade.games.game_2048
 
 ## 🎉 Congratulations!
 
-The AI Arcade MVP is **feature-complete** and ready for testing!
+The Agent Arcade MVP is **feature-complete** and ready for testing!
 
 All planned phases (0-7) have been implemented:
 - ✅ Project initialization
@@ -233,7 +229,6 @@ The application is ready to:
 - [ ] Test games-only mode
 - [ ] Test launcher menu
 - [ ] Play Snake game
-- [ ] Play 2048 game
 - [ ] Test tmux dual-pane (if tmux installed)
 - [ ] Test AI monitoring (if AI agent available)
 - [ ] Check config file creation

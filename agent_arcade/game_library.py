@@ -1,4 +1,4 @@
-"""Game library management for AI Arcade."""
+"""Game library management for Agent Arcade."""
 
 import importlib
 import inspect
@@ -18,10 +18,10 @@ class GameLibrary:
         Initialize game library.
 
         Args:
-            metadata_path: Path to metadata JSON. Defaults to ~/.ai-arcade/games_metadata.json
+            metadata_path: Path to metadata JSON. Defaults to ~/.agent-arcade/games_metadata.json
         """
         if metadata_path is None:
-            metadata_path = Path.home() / ".ai-arcade" / "games_metadata.json"
+            metadata_path = Path.home() / ".agent-arcade" / "games_metadata.json"
 
         self.metadata_path = Path(metadata_path).expanduser()
         self.metadata: Dict[str, Any] = self._load_metadata()
@@ -57,7 +57,7 @@ class GameLibrary:
 
     def _discover_games(self) -> Dict[str, Type[BaseGame]]:
         """
-        Discover all game classes in ai_arcade.games package.
+        Discover all game classes in agent_arcade.games package.
 
         Returns:
             Dictionary mapping game_id -> game_class
@@ -78,7 +78,7 @@ class GameLibrary:
 
                 try:
                     # Import the module
-                    module_name = f"ai_arcade.games.{py_file.stem}"
+                    module_name = f"agent_arcade.games.{py_file.stem}"
                     module = importlib.import_module(module_name)
 
                     # Find all classes that inherit from BaseGame

@@ -1,4 +1,4 @@
-"""Game runner for AI Arcade."""
+"""Game runner for Agent Arcade."""
 
 import subprocess
 import threading

@@ -1,5 +1,6 @@
-"""tmux session management for AI Arcade."""
+"""tmux session management for Agent Arcade."""
 
+import platform
 import shlex
 import subprocess
 import time
@@ -8,14 +9,15 @@ from typing import List, Optional
 
 
 class TmuxManager:
-    """Manages tmux session for AI Arcade."""
+    """Manages tmux session for Agent Arcade."""
 
-    def __init__(self, config):
+    def __init__(self, config, crash_file: Optional[Path] = None):
         """
         Initialize tmux manager.
 
         Args:
             config: Config instance
+            crash_file: Optional path to write crash-loop messages
 
         Raises:
             RuntimeError: If tmux is not installed
@@ -24,6 +26,7 @@ class TmuxManager:
         self.session_name = config.tmux.session_name
         self.ai_window_index = 0
         self.game_window_index = 1
+        self.crash_file = crash_file
 
         # Status tracking
         # Agent state: idle (default) or active
@@ -34,9 +37,16 @@ class TmuxManager:
 
         # Check tmux availability
         if not self._is_tmux_available():
+            install_hint = "Install tmux with your system package manager."
+            system = platform.system().lower()
+            if system == "darwin":
+                install_hint = "Install tmux with: brew install tmux"
+            elif system == "linux":
+                install_hint = "Install tmux with: sudo apt-get install tmux (Debian/Ubuntu) or sudo yum install tmux (RHEL/CentOS)"
             raise RuntimeError(
-                "tmux is not installed.\n"
-                "Install with: brew install tmux (macOS) or apt-get install tmux (Linux)"
+                "tmux is required but not installed.\n"
+                f"{install_hint}\n"
+                "After installing tmux, re-run agent-arcade."
             )
 
     def _is_tmux_available(self) -> bool:
@@ -157,7 +167,9 @@ class TmuxManager:
         self,
         agent_command: str,
         args: Optional[List[str]] = None,
-        working_dir: Optional[Path] = None
+        working_dir: Optional[Path] = None,
+        crash_label: Optional[str] = None,
+        crash_subject: Optional[str] = None
     ) -> None:
         """
         Launch AI agent in AI window.
@@ -178,14 +190,22 @@ class TmuxManager:
             full_command = f"cd {shlex.quote(str(working_dir))} && {full_command}"
 
         # Wrap in restart loop so Ctrl+C or exits restart the process
-        wrapped = self._wrap_restart_command(full_command)
+        wrapped = self._wrap_restart_command(
+            full_command,
+            crash_label=crash_label or agent_command,
+            crash_subject=crash_subject or (crash_label or agent_command)
+        )
         self._respawn_pane(self.ai_window_index, wrapped)
 
     def launch_game_runner(self) -> None:
         """Launch game runner in game window."""
         # Use Poetry to run the game runner module in the virtual environment
-        runner_cmd = "export PATH=\"/Users/anthonygore/.local/bin:$PATH\" && poetry run python -m ai_arcade.game_runner"
-        wrapped = self._wrap_restart_command(runner_cmd)
+        runner_cmd = "export PATH=\"/Users/anthonygore/.local/bin:$PATH\" && poetry run python -m agent_arcade.game_runner"
+        wrapped = self._wrap_restart_command(
+            runner_cmd,
+            crash_label="Game runner",
+            crash_subject="the game runner"
+        )
         self._respawn_pane(self.game_window_index, wrapped)
 
     def is_pane_dead(self, window_index: int) -> bool:
@@ -236,15 +256,52 @@ class TmuxManager:
             check=True,
         )
 
-    def _wrap_restart_command(self, command: str) -> str:
+    def _wrap_restart_command(
+        self,
+        command: str,
+        crash_label: str,
+        crash_subject: str
+    ) -> str:
         """
         Wrap a command in a restart loop that ignores Ctrl+C in the wrapper.
+        If the command crashes rapidly multiple times, exit the app.
 
         Args:
             command: Command string to run
+            crash_label: Label for crash message
+            upgrade_hint: Optional upgrade hint for message
         """
-        loop = f'trap "" INT; while true; do clear; {command}; sleep 1; done'
-        return f"bash -lc {shlex.quote(loop)}"
+        message = (
+            f"Exiting app because {crash_label} crashed. "
+            f"This might happen if {crash_subject} is not installed or needs to be upgraded."
+        )
+        crash_env = ""
+        if self.crash_file:
+            crash_env = f"export AGENT_ARCADE_CRASH_FILE={shlex.quote(str(self.crash_file))}; "
+        loop = (
+            f"{crash_env}"
+            "trap \"\" INT; "
+            "fast_count=0; "
+            "while true; do "
+            "clear; "
+            "start=$(date +%s); "
+            f"{command}; "
+            "end=$(date +%s); "
+            "runtime=$((end-start)); "
+            "if [ $runtime -lt 5 ]; then fast_count=$((fast_count+1)); else fast_count=0; fi; "
+            "if [ $fast_count -ge 2 ]; then "
+            "if [ -n \"$AGENT_ARCADE_CRASH_FILE\" ]; then "
+            f"printf %s\\\\n {shlex.quote(message)} > \"$AGENT_ARCADE_CRASH_FILE\"; "
+            "fi; "
+            "sleep 2; "
+            f"tmux kill-session -t {shlex.quote(self.session_name)}; "
+            "exit 1; "
+            "fi; "
+            "sleep 1; "
+            "done"
+        )
+        return f"bash -c {shlex.quote(loop)}"
+
 
     def send_to_window(
         self,

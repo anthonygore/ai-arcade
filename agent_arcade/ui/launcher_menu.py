@@ -1,4 +1,4 @@
-"""Launcher menu for AI Arcade."""
+"""Launcher menu for Agent Arcade."""
 
 import shutil
 from typing import Dict, Optional
@@ -10,7 +10,7 @@ from textual.widgets import Button, Header, Static
 
 
 class LauncherMenuApp(App):
-    """Initial launcher menu for AI Arcade."""
+    """Initial launcher menu for Agent Arcade."""
 
     CSS = """
     Screen {

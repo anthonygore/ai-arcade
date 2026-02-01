@@ -20,7 +20,7 @@ class SnakeGame(BaseGame):
     NAME = "Snake"
     DESCRIPTION = "Classic snake game. Eat food, grow longer, avoid walls and yourself!"
     CATEGORY = "arcade"
-    AUTHOR = "AI Arcade Team"
+    AUTHOR = "Agent Arcade Team"
     CONTROLS_HELP = ""
     MIN_TERMINAL_SIZE = (40, 20)
 
