@@ -96,14 +96,33 @@ class TmuxManager:
 
         # Configure status bar
         if self.config.tmux.status_bar:
-            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status", "on"])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status", "2"])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status-position", "bottom"])
             # Set status bar to fill width
-            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status-left-length", "50"])
-            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status-right-length", "50"])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status-left-length", "100"])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "status-right-length", "100"])
             # Hide window list immediately to prevent flash
             self._send_tmux_cmd(["set-option", "-t", self.session_name, "window-status-current-format", ""])
             self._send_tmux_cmd(["set-option", "-t", self.session_name, "window-status-format", ""])
             self._send_tmux_cmd(["set-option", "-t", self.session_name, "window-status-separator", ""])
+            # Key bindings bar (top line)
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "@game-keys", ""])
+            keybar_left = " Ctrl+Space: Toggle | Ctrl+Q: Quit "
+            keybar_right = "#{?@game-keys, #{@game-keys} ,}"
+            keybar_format = (
+                "#[bg=colour238,fg=white,bold,align=left]"
+                f"{keybar_left}"
+                "#[align=right]"
+                f"{keybar_right}"
+                "#[default]"
+            )
+            self._send_tmux_cmd([
+                "set-option",
+                "-t",
+                self.session_name,
+                "status-format[0]",
+                keybar_format,
+            ])
             # Initialize status bar
             self.update_status_bar()
         else:
@@ -280,21 +299,26 @@ class TmuxManager:
         # Left: Agent status
         status_left = f" {agent_status} "
 
-        # Right: Toggle instruction | Exit instruction | Game status
-        status_right = f" Ctrl+Space to toggle | Ctrl+q to exit | {game_status} "
+        # Right: Game status
+        status_right = f" {game_status} "
 
         # Set status bar with colored background
         self._send_tmux_cmd([
             "set-option", "-t", self.session_name, "status-style",
             f"bg={status_color},fg=black,bold"
         ])
+        status_format = (
+            "#[align=left]"
+            f"{status_left}"
+            "#[align=right]"
+            f"{status_right}"
+        )
         self._send_tmux_cmd([
-            "set-option", "-t", self.session_name, "status-left",
-            status_left
-        ])
-        self._send_tmux_cmd([
-            "set-option", "-t", self.session_name, "status-right",
-            status_right
+            "set-option",
+            "-t",
+            self.session_name,
+            "status-format[1]",
+            status_format,
         ])
 
         # Hide window list in center

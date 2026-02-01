@@ -5,7 +5,7 @@ from datetime import datetime
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.screen import Screen
-from textual.widgets import DataTable, Footer, Header, Static
+from textual.widgets import DataTable, Header, Static
 
 
 class GameSelectorScreen(Screen):
@@ -35,13 +35,6 @@ class GameSelectorScreen(Screen):
         margin: 1;
     }
 
-    #help-text {
-        dock: bottom;
-        height: 3;
-        background: $panel;
-        padding: 1;
-        content-align: center middle;
-    }
     """
 
     def __init__(self, library, save_manager):
@@ -107,13 +100,6 @@ class GameSelectorScreen(Screen):
                 )
 
             yield table
-
-        yield Static(
-            "↑↓: Navigate | Enter: Play New Game | R: Resume Saved Game | Q: Quit",
-            id="help-text"
-        )
-
-        yield Footer()
 
     def on_mount(self) -> None:
         """Focus the table when screen mounts."""

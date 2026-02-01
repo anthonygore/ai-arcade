@@ -6,7 +6,7 @@ from typing import Dict, Optional
 from textual import events
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Footer, Header, Static
+from textual.widgets import Button, Header, Static
 
 
 class LauncherMenuApp(App):
@@ -96,8 +96,6 @@ class LauncherMenuApp(App):
 
                 yield Button("🎮 Games Only", id="games-button")
                 yield Button("❌ Exit", id="exit-button")
-
-        yield Footer()
 
     def _get_title_art(self) -> str:
         """

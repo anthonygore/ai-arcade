@@ -1,14 +1,35 @@
 """Game runner for AI Arcade."""
 
+import subprocess
 import time
 
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header
+from textual.widgets import Header
 
 from .config import Config
 from .game_library import GameLibrary, SaveStateManager
 from .games.base_game import GameState
 from .ui.game_selector import GameSelectorScreen
+
+
+def _set_tmux_game_keys(config: Config, bindings) -> None:
+    """Update tmux key bindings bar with current game bindings."""
+    key_text = " | ".join(bindings) if bindings else ""
+    try:
+        subprocess.run(
+            [
+                "tmux",
+                "set-option",
+                "-t",
+                config.tmux.session_name,
+                "@game-keys",
+                key_text,
+            ],
+            check=False,
+        )
+    except FileNotFoundError:
+        # tmux not available; skip updating key bar
+        pass
 
 
 class GameRunnerApp(App):
@@ -29,7 +50,6 @@ class GameRunnerApp(App):
     def compose(self) -> ComposeResult:
         """Compose UI layout."""
         yield Header()
-        yield Footer()
 
     def on_mount(self) -> None:
         """Called when app starts."""
@@ -69,6 +89,8 @@ def main():
         library = GameLibrary()
         save_manager = SaveStateManager()
 
+        _set_tmux_game_keys(config, ())
+
         # Show game selector
         app = GameRunnerApp(config)
         result = app.run()
@@ -87,6 +109,8 @@ def main():
         if not game:
             print(f"Error: Could not load game {game_id}")
             continue
+
+        _set_tmux_game_keys(config, game.key_bindings)
 
         # Load save state if resuming
         if resume and save_manager.has_save(game_id):
@@ -129,6 +153,8 @@ def main():
             print(f"Error running game: {e}")
             import traceback
             traceback.print_exc()
+        finally:
+            _set_tmux_game_keys(config, ())
 
         # Loop back to show selector again
 

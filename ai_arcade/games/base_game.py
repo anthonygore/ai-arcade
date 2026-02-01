@@ -80,6 +80,16 @@ class BaseGame(ABC):
         """
         pass
 
+    @property
+    def key_bindings(self) -> Tuple[str, ...]:
+        """
+        Key bindings used by the game for display in the tmux key bar.
+
+        Returns:
+            Tuple of short key binding descriptions.
+        """
+        return ()
+
     def pause(self) -> None:
         """
         Pause the game.

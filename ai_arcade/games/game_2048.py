@@ -1,12 +1,12 @@
 """2048 puzzle game implementation."""
 
 import random
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from textual import events
 from textual.app import App, ComposeResult
 from textual.containers import Container
-from textual.widgets import Header, Footer, Static
+from textual.widgets import Header, Static
 
 from .base_game import BaseGame, GameMetadata, GameState
 
@@ -27,9 +27,14 @@ class Game2048(BaseGame):
             description="Combine tiles to reach 2048! Addictive number puzzle game.",
             category="puzzle",
             author="AI Arcade Team",
-            controls_help="Arrow keys: Slide tiles | P: Pause | Q: Quit",
+            controls_help="",
             min_terminal_size=(40, 20)
         )
+
+    @property
+    def key_bindings(self) -> Tuple[str, ...]:
+        """Key bindings used by 2048."""
+        return ("Arrows: Slide", "P: Pause", "R: Restart", "Q: Quit")
 
     def run(self) -> None:
         """Run the 2048 game."""
@@ -121,8 +126,6 @@ class Game2048App(App):
             yield Static(id="game-board")
 
         yield Static(id="instructions")
-        yield Footer()
-
     def on_mount(self) -> None:
         """Called when app starts."""
         self._update_display()
@@ -298,13 +301,13 @@ class Game2048App(App):
         instructions_widget = self.query_one("#instructions", Static)
         if self.game_over:
             if self.won:
-                instructions_widget.update(f"YOU WON! Score: {self.score} | R: Restart | Q: Quit")
+                instructions_widget.update(f"YOU WON! Score: {self.score}")
             else:
-                instructions_widget.update(f"GAME OVER! Score: {self.score} | R: Restart | Q: Quit")
+                instructions_widget.update(f"GAME OVER! Score: {self.score}")
         elif self.is_paused:
-            instructions_widget.update("PAUSED | Press P to resume")
+            instructions_widget.update("PAUSED")
         else:
-            instructions_widget.update("Arrow Keys: Slide | P: Pause | Q: Quit | R: Restart")
+            instructions_widget.update("")
 
     def _render_board(self) -> str:
         """Render the game board as text."""
