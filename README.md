@@ -36,7 +36,7 @@ pipx install agent-arcade
 
 ## Quick Start
 
-1. Launch Agent Arcade:
+1. Launch Agent Arcade in your project directory:
    ```bash
    agent-arcade
    ```

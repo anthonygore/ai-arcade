@@ -22,6 +22,11 @@ def check_version():
     if os.environ.get("SKIP_VERSION_CHECK"):
         return
 
+    # Skip version check in dev mode (running from source)
+    from .config import get_data_dir
+    if get_data_dir() == ".agent-arcade-dev":
+        return
+
     try:
         import json
         from urllib.request import urlopen

@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "agent-arcade"
-version = "1.1.2"
+version = "1.1.3"
 description = "Play fun arcade games while waiting on AI agent tasks"
-authors = ["Anthony Gore <anthony@vuejsdevelopers.com>"]
+authors = ["Anthony Gore <round.flag4647@fastmail.com>"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/anthonygore/agent-arcade"
