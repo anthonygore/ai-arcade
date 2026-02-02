@@ -125,6 +125,9 @@ class GameLibrary:
         """
         List all available games.
 
+        In production, only published games are returned.
+        In dev mode, all games are returned.
+
         Args:
             sort_by: Sort criteria ("name", "last_played", "play_count", "category")
 
@@ -132,11 +135,18 @@ class GameLibrary:
             List of GameMetadata objects
         """
         games = []
+        is_dev = get_data_dir() == ".agent-arcade-dev"
 
         for game_id, game_class in self.available_games.items():
             try:
                 instance = game_class()
-                games.append(instance.metadata)
+                metadata = instance.metadata
+
+                # In production, skip unpublished games
+                if not is_dev and not metadata.published:
+                    continue
+
+                games.append(metadata)
             except Exception as e:
                 print(f"Warning: Could not get metadata for {game_id}: {e}")
 

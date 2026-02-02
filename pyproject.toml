@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agent-arcade"
-version = "1.0.0"
+version = "1.1.0"
 description = "Play terminal games while AI coding agents think"
 authors = ["Anthony Gore <anthony@vuejsdevelopers.com>"]
 readme = "README.md"

@@ -36,6 +36,7 @@ class GameMetadata:
     author: str
     controls_help: str
     min_terminal_size: Tuple[int, int]  # (cols, rows)
+    published: bool = True  # Whether game is available in production
 
 
 class BaseGame(ABC):
@@ -48,6 +49,7 @@ class BaseGame(ABC):
     AUTHOR: str | None = None
     CONTROLS_HELP: str | None = None
     MIN_TERMINAL_SIZE: Tuple[int, int] | None = None
+    PUBLISHED: bool = False  # Default to unpublished
 
     def __init__(self):
         """Initialize the game."""
@@ -84,6 +86,7 @@ class BaseGame(ABC):
             author=self.AUTHOR,
             controls_help=self.CONTROLS_HELP,
             min_terminal_size=self.MIN_TERMINAL_SIZE,
+            published=self.PUBLISHED,
         )
 
     @abstractmethod

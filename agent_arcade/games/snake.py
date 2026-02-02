@@ -23,6 +23,7 @@ class SnakeGame(BaseGame):
     AUTHOR = "Agent Arcade Team"
     CONTROLS_HELP = ""
     MIN_TERMINAL_SIZE = (40, 20)
+    PUBLISHED = True
 
     def __init__(self):
         """Initialize Snake game."""

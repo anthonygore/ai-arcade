@@ -13,30 +13,28 @@ def get_data_dir() -> str:
     Returns ".agent-arcade-dev" in development mode, ".agent-arcade" otherwise.
     Development mode is detected by:
     - AGENT_ARCADE_DEV environment variable
-    - Running from Poetry environment (POETRY_ACTIVE or in project directory)
+    - Running from source (not installed in site-packages)
     """
     # Explicit dev mode flag
     if os.environ.get("AGENT_ARCADE_DEV"):
         return ".agent-arcade-dev"
 
-    # Check if running from Poetry
-    if os.environ.get("POETRY_ACTIVE"):
+    # Check if running from source (development mode)
+    # In dev: __file__ is in the project directory
+    # In production: __file__ is in site-packages
+    try:
+        # Get the directory containing this file
+        config_file = Path(__file__).resolve()
+
+        # Check if we're in site-packages (production install)
+        if "site-packages" in str(config_file):
+            return ".agent-arcade"
+
+        # Not in site-packages = running from source = dev mode
         return ".agent-arcade-dev"
-
-    # Check if running from project directory with pyproject.toml
-    project_root = Path(__file__).parent.parent
-    if (project_root / "pyproject.toml").exists():
-        # Check if we're running from editable install
-        try:
-            from importlib.metadata import distribution
-            dist = distribution("agent-arcade")
-            # Editable installs have direct_url.json
-            if hasattr(dist, '_path') and dist._path and 'site-packages' not in str(dist._path):
-                return ".agent-arcade-dev"
-        except Exception:
-            pass
-
-    return ".agent-arcade"
+    except Exception:
+        # Fallback to production
+        return ".agent-arcade"
 
 
 @dataclass
