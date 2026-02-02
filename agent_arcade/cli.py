@@ -17,27 +17,18 @@ from .tmux_manager import TmuxManager
 
 def print_help(config: Config):
     """Print CLI help/usage information."""
-    agent_lines = []
-    for agent in config.agents.values():
-        label = agent.id
-        if agent.name:
-            label = f"{agent.id} ({agent.name})"
-        agent_lines.append(f"  - {label}")
-
     usage = [
-        "Agent Arcade - run an AI agent alongside the game runner",
+        "Agent Arcade - AI coding agents with games for waiting",
         "",
         "Usage:",
-        "  agent-arcade [agent]",
-        "",
-        "Arguments:",
-        "  agent        Agent id or name to launch (default: claude_code)",
+        "  agent-arcade",
         "",
         "Options:",
         "  -h, --help   Show this help message and exit",
         "",
-        "Available agents:",
-        *agent_lines,
+        "When you run agent-arcade, you'll see a menu to select your AI agent.",
+        "After selecting an agent, switch to the games window with Ctrl+Space.",
+        "Press Ctrl+X to exit anytime.",
     ]
     print("\n".join(usage))
 
@@ -56,11 +47,8 @@ def main():
             print_help(config)
             sys.exit(0)
 
-        # Pick agent from CLI arg (default to Claude Code)
-        agent_selector = sys.argv[1] if len(sys.argv) > 1 else "claude_code"
-
-        # Launch directly with agent + Games
-        run_with_agent(config, agent_selector)
+        # Launch with agent menu + Games
+        run_with_agent_menu(config)
 
     except KeyboardInterrupt:
         print("\n👋 Exiting Agent Arcade.")
@@ -211,6 +199,103 @@ def run_with_agent(config, agent_selector: str):
         # Cleanup
         if 'monitor' in locals():
             monitor.stop()
+        stop_event.set()
+        cleanup()
+
+
+def run_with_agent_menu(config):
+    """
+    Run with agent selection menu in AI window.
+
+    Args:
+        config: Config instance
+    """
+    print("agent-arcade launching with agent menu")
+
+    # Create tmux manager (no crash file needed - agents self-manage)
+    try:
+        tmux = TmuxManager(config)
+    except RuntimeError as e:
+        print(f"❌ {e}")
+        sys.exit(1)
+
+    # Set up cleanup handlers
+    def cleanup():
+        """Clean up tmux session on exit."""
+        try:
+            tmux.kill_session()
+        except:
+            pass
+
+    atexit.register(cleanup)
+
+    def signal_handler(sig, frame):
+        """Handle termination signals."""
+        print("\n👋 Exiting Agent Arcade...")
+        cleanup()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    stop_event = threading.Event()
+    monitor_thread = None
+
+    def start_game_pane_monitor():
+        """Restart game pane if it exits unexpectedly."""
+        def monitor():
+            game_failures = 0
+            while not stop_event.is_set():
+                try:
+                    # Only monitor game window (agent window self-manages)
+                    if tmux.is_pane_dead(tmux.game_window_index):
+                        try:
+                            tmux.launch_game_runner()
+                            game_failures = 0
+                        except Exception:
+                            game_failures += 1
+                    else:
+                        game_failures = 0
+
+                    if game_failures >= 3:
+                        raise RuntimeError("Game pane restart failed repeatedly")
+                except Exception:
+                    stop_event.set()
+                    try:
+                        tmux.kill_session()
+                    finally:
+                        sys.exit(1)
+                time.sleep(1.0)
+
+        nonlocal monitor_thread
+        monitor_thread = threading.Thread(target=monitor, daemon=True)
+        monitor_thread.start()
+
+    try:
+        # Create split-pane session
+        tmux.create_session()
+
+        # Launch agent runner (menu) in AI window
+        tmux.launch_agent_runner()
+
+        # Launch game runner in game window
+        tmux.launch_game_runner()
+
+        # Start game pane monitor only (AI window self-manages)
+        start_game_pane_monitor()
+
+        # No AIMonitor (agents self-manage state)
+
+        # Attach to tmux session (blocking)
+        tmux.attach()
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        cleanup()
+        sys.exit(1)
+
+    finally:
+        # Cleanup
         stop_event.set()
         cleanup()
 

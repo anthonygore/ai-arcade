@@ -33,6 +33,7 @@ class TmuxManager:
         # idle = user typing or agent waiting
         # active = agent thinking or generating
         self.agent_state_idle = True
+        self.agent_selected = False  # True once user selects an agent from menu
         self.current_game = None
 
         # Check tmux availability
@@ -135,8 +136,11 @@ class TmuxManager:
                 "status-format[0]",
                 keybar_format,
             ])
-            # Initialize status bar
-            self.update_status_bar()
+            # Initialize status bar with dynamic content
+            # Status bar will read @selected-agent variable directly
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "@selected-agent", ""])
+            self._send_tmux_cmd(["set-option", "-t", self.session_name, "@current-game", ""])
+            self._setup_dynamic_status_bar()
         else:
             self._send_tmux_cmd(["set-option", "-t", self.session_name, "status", "off"])
 
@@ -207,6 +211,56 @@ class TmuxManager:
             crash_subject="the game runner"
         )
         self._respawn_pane(self.game_window_index, wrapped)
+
+    def launch_agent_runner(self) -> None:
+        """Launch agent runner in AI window."""
+        # Use Poetry to run the agent runner module in the virtual environment
+        runner_cmd = "export PATH=\"/Users/anthonygore/.local/bin:$PATH\" && poetry run python -m agent_arcade.agent_runner"
+        wrapped = self._wrap_agent_launcher(runner_cmd)
+        self._respawn_pane(self.ai_window_index, wrapped)
+
+    def _wrap_agent_launcher(self, menu_cmd: str) -> str:
+        """
+        Wrap agent selector menu in a loop that launches selected agents.
+
+        When menu exits:
+        - Exit code 130 (Ctrl+C): exit entire app
+        - Exit code 0: read selected agent and launch it
+        - No selection: exit entire app
+
+        When agent exits: return to menu (no crash detection)
+
+        Args:
+            menu_cmd: Command to launch agent selector menu
+
+        Returns:
+            Wrapped bash command string
+        """
+        loop = (
+            "trap \"\" INT; "  # Ignore Ctrl+C in wrapper
+            "while true; do "
+            # Clear previous selection
+            f"tmux set-option -t {shlex.quote(self.session_name)} -u @selected-agent 2>/dev/null || true; "
+            # Launch agent selector menu
+            "clear; "
+            f"{menu_cmd}; "
+            "exit_code=$?; "
+            # Read selected agent from tmux options
+            f"selected=$(tmux show-options -t {shlex.quote(self.session_name)} -v @selected-agent 2>/dev/null || echo ''); "
+            # If agent was selected, launch it
+            "if [ -n \"$selected\" ]; then "
+            "clear; "
+            "export PATH=\"/Users/anthonygore/.local/bin:$PATH\"; "
+            "poetry run python -m agent_arcade.agent_launcher \"$selected\"; "
+            # Agent exited - clear selection and update status bar
+            f"tmux set-option -t {shlex.quote(self.session_name)} -u @selected-agent 2>/dev/null || true; "
+            "export PATH=\"/Users/anthonygore/.local/bin:$PATH\"; "
+            "poetry run python -m agent_arcade.update_status 2>/dev/null || true; "
+            "fi; "
+            # Loop back to menu (whether agent was selected or not)
+            "done"
+        )
+        return f"bash -c {shlex.quote(loop)}"
 
     def is_pane_dead(self, window_index: int) -> bool:
         """
@@ -414,13 +468,26 @@ class TmuxManager:
         self.current_game = game_name
         self.update_status_bar()
 
+    def _setup_dynamic_status_bar(self) -> None:
+        """Set up initial status bar - will be updated by update_status_bar()."""
+        # Just call update_status_bar to set initial state
+        self.update_status_bar()
+
     def update_status_bar(self) -> None:
         """Update the status bar with current state."""
         if not self.config.tmux.status_bar:
             return
 
-        # Two states: idle or active
-        if self.agent_state_idle:
+        # Check if agent is selected (read from tmux option)
+        selected_agent = self.get_session_option("@selected-agent")
+        agent_is_selected = bool(selected_agent)
+
+        # Three states: no agent, idle, or active
+        if not agent_is_selected:
+            # No agent selected yet (still in menu)
+            status_color = "cyan"
+            agent_status = "🤖 No agent selected"
+        elif self.agent_state_idle:
             # idle = user typing or agent waiting
             status_color = "green"
             agent_status = "🤖 Agent idle"
