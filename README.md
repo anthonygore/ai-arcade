@@ -2,6 +2,8 @@
 
 **Play fun arcade games while waiting on AI agent tasks.**
 
+![Demo](demo.gif)
+
 Stop context-switching to your phone or social media while waiting for Claude Code or Codex to finish. Stay in the terminal, stay productive!
 
 ## Installation
